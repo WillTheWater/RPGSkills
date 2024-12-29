@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "Controllers/RPGSkillsPlayerController.h"
 #include "EnhancedInputSubsystems.h"
+#include "EnhancedInputComponent.h"
 
 ARPGSkillsBaseCharacter::ARPGSkillsBaseCharacter()
 {
@@ -41,5 +42,36 @@ void ARPGSkillsBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	UEnhancedInputComponent* EIComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+	if (EIComponent == nullptr) { return; }
+	EIComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ARPGSkillsBaseCharacter::Move);
+	EIComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &ARPGSkillsBaseCharacter::MoveReleased);
+
+}
+
+void ARPGSkillsBaseCharacter::Move(const FInputActionValue& Value)
+{
+	FVector2D VectorData = Value.Get<FVector2D>();
+	VelocityX = VectorData.X;
+	VelocityY = VectorData.Y;
+
+	if (Controller == nullptr) { return; }
+	FRotator YawRotator = FRotator(0.f, Controller->GetControlRotation().Yaw, 0.f);
+
+
+	FVector WorldDirectionX = FRotationMatrix(YawRotator).GetUnitAxis(EAxis::X);
+	FVector WorldDirectionY = FRotationMatrix(YawRotator).GetUnitAxis(EAxis::Y);
+	AddMovementInput(WorldDirectionX, VelocityX);
+	AddMovementInput(WorldDirectionY, VelocityY);
+}
+
+void ARPGSkillsBaseCharacter::MoveReleased(const FInputActionValue& Value)
+{
+	VelocityX = 0.f;
+	VelocityY = 0.f;
+}
+
+void ARPGSkillsBaseCharacter::Look(const FInputActionValue& Value)
+{
 }
 
