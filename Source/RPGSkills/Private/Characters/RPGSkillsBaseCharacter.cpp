@@ -46,7 +46,42 @@ void ARPGSkillsBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 	if (EIComponent == nullptr) { return; }
 	EIComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ARPGSkillsBaseCharacter::Move);
 	EIComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &ARPGSkillsBaseCharacter::MoveReleased);
+	EIComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARPGSkillsBaseCharacter::Look);
+	EIComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &ARPGSkillsBaseCharacter::Sprint);
+	EIComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ARPGSkillsBaseCharacter::SprintReleased);
+	EIComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ARPGSkillsBaseCharacter::SprintStarted);
 
+}
+
+void ARPGSkillsBaseCharacter::LocomotionManager(EMovementTypes NewMovementType)
+{
+	if (CurrentMT == NewMovementType) { return; }
+	else { CurrentMT = NewMovementType; }
+
+	if (CurrentMT == EMovementTypes::MT_GLIDING)
+	{
+		//TODO
+	}
+
+	switch (CurrentMT)
+	{
+	case EMovementTypes::MT_EMAX:
+		break;
+	case EMovementTypes::MT_WALKING:
+		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::White, "Walking");
+		break;
+	case EMovementTypes::MT_EXHAUSTED:
+		break;
+	case EMovementTypes::MT_SPRINTING:
+		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::White, "Sprinting");
+		break;
+	case EMovementTypes::MT_GLIDING:
+		break;
+	case EMovementTypes::MT_FALLING:
+		break;
+	default:
+		break;
+	}
 }
 
 void ARPGSkillsBaseCharacter::Move(const FInputActionValue& Value)
@@ -73,5 +108,22 @@ void ARPGSkillsBaseCharacter::MoveReleased(const FInputActionValue& Value)
 
 void ARPGSkillsBaseCharacter::Look(const FInputActionValue& Value)
 {
+	FVector2D ControllerRotation = Value.Get<FVector2D>();
+	AddControllerYawInput(ControllerRotation.X);
+	AddControllerPitchInput(ControllerRotation.Y);
+}
+
+void ARPGSkillsBaseCharacter::Sprint(const FInputActionValue& Value)
+{
+}
+
+void ARPGSkillsBaseCharacter::SprintReleased(const FInputActionValue& Value)
+{
+	LocomotionManager(EMovementTypes::MT_WALKING);
+}
+
+void ARPGSkillsBaseCharacter::SprintStarted(const FInputActionValue& Value)
+{
+	LocomotionManager(EMovementTypes::MT_SPRINTING);
 }
 

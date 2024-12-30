@@ -14,4 +14,6 @@ class RPGSKILLS_API ARPGSkillsPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
+public:
+	virtual void BeginPlay() override;
 };
