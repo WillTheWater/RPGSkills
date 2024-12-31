@@ -54,6 +54,11 @@ public:
 	UFUNCTION()
 	void SprintStarted(const FInputActionValue& Value);
 
+	void SetSprint();
+	void ResetToWalk();
+	void SetWalking();
+
+
 	UPROPERTY(EditAnywhere, Category = "Components")
 	TObjectPtr<USpringArmComponent> CameraBoom;
 	

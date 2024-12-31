@@ -6,6 +6,7 @@
 #include "Controllers/RPGSkillsPlayerController.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 ARPGSkillsBaseCharacter::ARPGSkillsBaseCharacter()
 {
@@ -68,12 +69,12 @@ void ARPGSkillsBaseCharacter::LocomotionManager(EMovementTypes NewMovementType)
 	case EMovementTypes::MT_EMAX:
 		break;
 	case EMovementTypes::MT_WALKING:
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::White, "Walking");
+		SetWalking();
 		break;
 	case EMovementTypes::MT_EXHAUSTED:
 		break;
 	case EMovementTypes::MT_SPRINTING:
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::White, "Sprinting");
+		SetSprint();
 		break;
 	case EMovementTypes::MT_GLIDING:
 		break;
@@ -115,15 +116,48 @@ void ARPGSkillsBaseCharacter::Look(const FInputActionValue& Value)
 
 void ARPGSkillsBaseCharacter::Sprint(const FInputActionValue& Value)
 {
+	if (CurrentMT == EMovementTypes::MT_SPRINTING && VelocityX == 0.f && VelocityY == 0.f)
+	{
+		LocomotionManager(EMovementTypes::MT_WALKING);
+	}
 }
 
 void ARPGSkillsBaseCharacter::SprintReleased(const FInputActionValue& Value)
 {
-	LocomotionManager(EMovementTypes::MT_WALKING);
+	if (CurrentMT == EMovementTypes::MT_SPRINTING)
+	{
+		LocomotionManager(EMovementTypes::MT_WALKING);
+	}
 }
 
 void ARPGSkillsBaseCharacter::SprintStarted(const FInputActionValue& Value)
 {
-	LocomotionManager(EMovementTypes::MT_SPRINTING);
+	if (CurrentMT == EMovementTypes::MT_EMAX || CurrentMT == EMovementTypes::MT_WALKING)
+	{
+		LocomotionManager(EMovementTypes::MT_SPRINTING);
+	}
+}
+
+void ARPGSkillsBaseCharacter::SetSprint()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::White, "Sprinting");
+	GetCharacterMovement()->MaxWalkSpeed = 1000.f;
+	GetCharacterMovement()->AirControl = 0.35f;
+	ResetToWalk();
+	// TODO - Consume Stamina
+}
+
+void ARPGSkillsBaseCharacter::ResetToWalk()
+{
+	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+}
+
+void ARPGSkillsBaseCharacter::SetWalking()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::White, "Set Walking");
+	GetCharacterMovement()->MaxWalkSpeed = 500.f;
+	GetCharacterMovement()->AirControl = 0.05f;
+	ResetToWalk();
+	// TODO - Recover Stamina
 }
 
