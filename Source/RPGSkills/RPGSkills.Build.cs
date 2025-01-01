@@ -11,8 +11,10 @@ public class RPGSkills : ModuleRules
 		PublicDependencyModuleNames.AddRange(new string[] 
 		{ "Core", 
 			"CoreUObject", 
-			"Engine", "InputCore", 
-			"EnhancedInput" 
+			"Engine", 
+			"InputCore", 
+			"EnhancedInput",
+			"UMG"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

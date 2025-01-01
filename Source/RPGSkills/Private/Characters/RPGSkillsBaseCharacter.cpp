@@ -7,6 +7,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "UI/RPGOverlayUI.h"
 
 ARPGSkillsBaseCharacter::ARPGSkillsBaseCharacter()
 {
@@ -31,11 +32,26 @@ void ARPGSkillsBaseCharacter::BeginPlay()
 	if (Subsystem == nullptr) { return; }
 
 	Subsystem->AddMappingContext(IMC_RPGSkills, 0);
+
+	CurrentStamina = MaxStamina;
+
+	if (OverlayClassReference)
+	{
+		UIReference = CreateWidget<URPGOverlayUI>(GetWorld(), OverlayClassReference);
+		if (UIReference)
+		{
+			UIReference->PlayerReference = this;
+			UIReference->AddToViewport();
+		}
+	}
 }
 
 void ARPGSkillsBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	FString StaminaStr = FString::SanitizeFloat(CurrentStamina);
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, StaminaStr);
 
 }
 
@@ -144,7 +160,7 @@ void ARPGSkillsBaseCharacter::SetSprint()
 	GetCharacterMovement()->MaxWalkSpeed = 1000.f;
 	GetCharacterMovement()->AirControl = 0.35f;
 	ResetToWalk();
-	// TODO - Consume Stamina
+	StartStaminaDrain();
 }
 
 void ARPGSkillsBaseCharacter::ResetToWalk()
@@ -158,6 +174,53 @@ void ARPGSkillsBaseCharacter::SetWalking()
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 	GetCharacterMovement()->AirControl = 0.05f;
 	ResetToWalk();
-	// TODO - Recover Stamina
+	StartStaminaRecovery();
+}
+
+void ARPGSkillsBaseCharacter::DrainStaminaTimer()
+{
+	if (CurrentStamina <= 0.f)
+	{
+		LocomotionManager(EMovementTypes::MT_EXHAUSTED);
+	}
+	else
+	{
+		CurrentStamina = FMath::Clamp((CurrentStamina - StaminaLossRate), 0.f, MaxStamina);
+	}
+}
+
+void ARPGSkillsBaseCharacter::StartStaminaDrain()
+{
+	ClearStaminaTimers();
+	GetWorldTimerManager().SetTimer(DrainStaminaTimerHandle, this, &ARPGSkillsBaseCharacter::DrainStaminaTimer, StaminaLossRate, true);
+
+	// TODO - Show stamina UI
+}
+
+void ARPGSkillsBaseCharacter::RecoverStaminaTimer()
+{
+	if (CurrentStamina < MaxStamina)
+	{
+		CurrentStamina = FMath::Clamp((CurrentStamina + StaminaLossRate), 0.f, MaxStamina);
+	}
+	else
+	{
+		GetWorldTimerManager().ClearTimer(RecoverStaminaTimerHandle);
+		LocomotionManager(EMovementTypes::MT_WALKING);
+
+		// TODO - Hide Stamina UI
+	}
+}
+
+void ARPGSkillsBaseCharacter::StartStaminaRecovery()
+{
+	ClearStaminaTimers();
+	GetWorldTimerManager().SetTimer(RecoverStaminaTimerHandle, this, &ARPGSkillsBaseCharacter::RecoverStaminaTimer, StaminaLossRate, true);
+}
+
+void ARPGSkillsBaseCharacter::ClearStaminaTimers()
+{
+	GetWorldTimerManager().ClearTimer(DrainStaminaTimerHandle);
+	GetWorldTimerManager().ClearTimer(RecoverStaminaTimerHandle);
 }
 

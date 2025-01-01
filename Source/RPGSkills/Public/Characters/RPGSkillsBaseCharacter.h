@@ -10,6 +10,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
+class URPGOverlayUI;
 
 UENUM(BlueprintType)
 enum class EMovementTypes : uint8
@@ -58,6 +59,16 @@ public:
 	void ResetToWalk();
 	void SetWalking();
 
+	void DrainStaminaTimer();
+	FTimerHandle DrainStaminaTimerHandle;
+
+	void StartStaminaDrain();
+	void RecoverStaminaTimer();
+	FTimerHandle RecoverStaminaTimerHandle;
+	void StartStaminaRecovery();
+
+	void ClearStaminaTimers();
+
 
 	UPROPERTY(EditAnywhere, Category = "Components")
 	TObjectPtr<USpringArmComponent> CameraBoom;
@@ -80,9 +91,25 @@ public:
 	UPROPERTY(EditAnywhere, Category = "CharacterMovementState")
 	EMovementTypes CurrentMT = EMovementTypes::MT_EMAX;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stamina")
+	float CurrentStamina = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stamina")
+	float MaxStamina = 100.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stamina")
+	float StaminaLossRate = 0.05f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stamina")
+	float StaminaCost = 0.5f;
+
+	UPROPERTY(EditAnywhere, Category = "UserInterface")
+	TSubclassOf<UUserWidget> OverlayClassReference;
 
 	float VelocityX;
 	float VelocityY;
+
+	TObjectPtr<URPGOverlayUI> UIReference;
 
 protected:
 	virtual void BeginPlay() override;
