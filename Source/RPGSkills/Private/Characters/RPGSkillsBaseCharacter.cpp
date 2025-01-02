@@ -154,6 +154,12 @@ void ARPGSkillsBaseCharacter::SprintStarted(const FInputActionValue& Value)
 	}
 }
 
+bool const ARPGSkillsBaseCharacter::IsCharacterExausted()
+{
+	bool bEqual = CurrentMT == EMovementTypes::MT_EXHAUSTED;
+	return bEqual;
+}
+
 void ARPGSkillsBaseCharacter::SetSprint()
 {
 	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::White, "Sprinting");
@@ -194,7 +200,10 @@ void ARPGSkillsBaseCharacter::StartStaminaDrain()
 	ClearStaminaTimers();
 	GetWorldTimerManager().SetTimer(DrainStaminaTimerHandle, this, &ARPGSkillsBaseCharacter::DrainStaminaTimer, StaminaLossRate, true);
 
-	// TODO - Show stamina UI
+	if (UIReference)
+	{
+		UIReference->ShowGaugeAnim(true);
+	}
 }
 
 void ARPGSkillsBaseCharacter::RecoverStaminaTimer()
@@ -208,7 +217,10 @@ void ARPGSkillsBaseCharacter::RecoverStaminaTimer()
 		GetWorldTimerManager().ClearTimer(RecoverStaminaTimerHandle);
 		LocomotionManager(EMovementTypes::MT_WALKING);
 
-		// TODO - Hide Stamina UI
+		if (UIReference)
+		{
+			UIReference->ShowGaugeAnim(false);
+		}
 	}
 }
 

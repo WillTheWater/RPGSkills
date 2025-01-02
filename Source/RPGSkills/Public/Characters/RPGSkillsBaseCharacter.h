@@ -55,6 +55,9 @@ public:
 	UFUNCTION()
 	void SprintStarted(const FInputActionValue& Value);
 
+	UFUNCTION(BlueprintCallable)
+	bool const IsCharacterExausted();
+
 	void SetSprint();
 	void ResetToWalk();
 	void SetWalking();
@@ -98,7 +101,7 @@ public:
 	float MaxStamina = 100.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stamina")
-	float StaminaLossRate = 0.05f;
+	float StaminaLossRate = 0.5f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stamina")
 	float StaminaCost = 0.5f;

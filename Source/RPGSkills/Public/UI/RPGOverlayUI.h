@@ -18,4 +18,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	ARPGSkillsBaseCharacter* PlayerReference;
 	
+	UFUNCTION(BlueprintImplementableEvent)
+	void ShowGaugeAnim(bool bShow);
 };
