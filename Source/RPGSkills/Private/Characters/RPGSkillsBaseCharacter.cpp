@@ -8,6 +8,7 @@
 #include "EnhancedInputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "UI/RPGOverlayUI.h"
+#include "DrawDebugHelpers.h"
 
 ARPGSkillsBaseCharacter::ARPGSkillsBaseCharacter()
 {
@@ -67,6 +68,8 @@ void ARPGSkillsBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 	EIComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &ARPGSkillsBaseCharacter::Sprint);
 	EIComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ARPGSkillsBaseCharacter::SprintReleased);
 	EIComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ARPGSkillsBaseCharacter::SprintStarted);
+	EIComponent->BindAction(JumpGlideAction, ETriggerEvent::Completed, this, &ARPGSkillsBaseCharacter::JumpGlideReleased);
+	EIComponent->BindAction(JumpGlideAction, ETriggerEvent::Started, this, &ARPGSkillsBaseCharacter::JumpGlideStarted);
 
 }
 
@@ -88,11 +91,13 @@ void ARPGSkillsBaseCharacter::LocomotionManager(EMovementTypes NewMovementType)
 		SetWalking();
 		break;
 	case EMovementTypes::MT_EXHAUSTED:
+		SetExhausted();
 		break;
 	case EMovementTypes::MT_SPRINTING:
 		SetSprint();
 		break;
 	case EMovementTypes::MT_GLIDING:
+		SetGliding();
 		break;
 	case EMovementTypes::MT_FALLING:
 		break;
@@ -154,6 +159,43 @@ void ARPGSkillsBaseCharacter::SprintStarted(const FInputActionValue& Value)
 	}
 }
 
+void ARPGSkillsBaseCharacter::JumpGlideStarted(const FInputActionValue& Value)
+{
+	if (CurrentMT == EMovementTypes::MT_EXHAUSTED) { return; }
+	if (GetCharacterMovement()->MovementMode != EMovementMode::MOVE_Falling)
+	{
+		Jump();
+		LocomotionManager(EMovementTypes::MT_FALLING);
+	}
+
+	if (CurrentMT == EMovementTypes::MT_GLIDING)
+	{
+		LocomotionManager(EMovementTypes::MT_FALLING);
+	}
+
+	FHitResult HitResult;
+	FVector Start = GetActorLocation();
+	FVector End = Start + EnableGlideDistance;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
+
+	DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 5.f, 0, 3.f);
+	if (bHit)
+	{
+
+	}
+	else
+	{
+		LocomotionManager(EMovementTypes::MT_GLIDING);
+	}
+}
+
+void ARPGSkillsBaseCharacter::JumpGlideReleased(const FInputActionValue& Value)
+{
+	StopJumping();
+}
+
 bool const ARPGSkillsBaseCharacter::IsCharacterExausted()
 {
 	bool bEqual = CurrentMT == EMovementTypes::MT_EXHAUSTED;
@@ -181,6 +223,29 @@ void ARPGSkillsBaseCharacter::SetWalking()
 	GetCharacterMovement()->AirControl = 0.05f;
 	ResetToWalk();
 	StartStaminaRecovery();
+}
+
+void ARPGSkillsBaseCharacter::SetExhausted()
+{
+	GetCharacterMovement()->MaxWalkSpeed = 300.f;
+	GetCharacterMovement()->AirControl = 0.35;
+	ClearStaminaTimers();
+	if (GetCharacterMovement()->MovementMode == EMovementMode::MOVE_Walking)
+	{
+		StartStaminaRecovery();
+	}
+	else if (GetCharacterMovement()->MovementMode == EMovementMode::MOVE_Falling)
+	{
+		ResetToWalk();
+	}
+	else { return; }
+}
+
+void ARPGSkillsBaseCharacter::SetGliding()
+{
+	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+	GetCharacterMovement()->AirControl = 0.6f;
+	StartStaminaDrain();
 }
 
 void ARPGSkillsBaseCharacter::DrainStaminaTimer()

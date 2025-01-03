@@ -55,12 +55,20 @@ public:
 	UFUNCTION()
 	void SprintStarted(const FInputActionValue& Value);
 
+	UFUNCTION()
+	void JumpGlideStarted(const FInputActionValue& Value);
+
+	UFUNCTION()
+	void JumpGlideReleased(const FInputActionValue& Value);
+
 	UFUNCTION(BlueprintCallable)
 	bool const IsCharacterExausted();
 
 	void SetSprint();
 	void ResetToWalk();
 	void SetWalking();
+	void SetExhausted();
+	void SetGliding();
 
 	void DrainStaminaTimer();
 	FTimerHandle DrainStaminaTimerHandle;
@@ -91,6 +99,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* SprintAction;
 
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* JumpGlideAction;
+
 	UPROPERTY(EditAnywhere, Category = "CharacterMovementState")
 	EMovementTypes CurrentMT = EMovementTypes::MT_EMAX;
 
@@ -108,6 +119,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "UserInterface")
 	TSubclassOf<UUserWidget> OverlayClassReference;
+
+	UPROPERTY(EditAnywhere, Category = "Attributes")
+	FVector EnableGlideDistance = FVector(0.f, 0.f, 150.f);
 
 	float VelocityX;
 	float VelocityY;
