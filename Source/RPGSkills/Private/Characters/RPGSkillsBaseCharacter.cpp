@@ -47,6 +47,23 @@ void ARPGSkillsBaseCharacter::BeginPlay()
 	}
 }
 
+void ARPGSkillsBaseCharacter::Landed(const FHitResult& Hit)
+{
+	if (CurrentMT == EMovementTypes::MT_EXHAUSTED)
+	{
+		StartStaminaRecovery();
+		return;
+	}
+	if (CurrentMT == EMovementTypes::MT_GLIDING)
+	{
+		LocomotionManager(EMovementTypes::MT_WALKING);
+		return;
+	}
+
+	LocomotionManager(EMovementTypes::MT_WALKING);
+
+}
+
 void ARPGSkillsBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -100,6 +117,7 @@ void ARPGSkillsBaseCharacter::LocomotionManager(EMovementTypes NewMovementType)
 		SetGliding();
 		break;
 	case EMovementTypes::MT_FALLING:
+		SetFalling();
 		break;
 	default:
 		break;
@@ -166,11 +184,13 @@ void ARPGSkillsBaseCharacter::JumpGlideStarted(const FInputActionValue& Value)
 	{
 		Jump();
 		LocomotionManager(EMovementTypes::MT_FALLING);
+		return;
 	}
 
 	if (CurrentMT == EMovementTypes::MT_GLIDING)
 	{
 		LocomotionManager(EMovementTypes::MT_FALLING);
+		return;
 	}
 
 	FHitResult HitResult;
@@ -213,6 +233,7 @@ void ARPGSkillsBaseCharacter::SetSprint()
 
 void ARPGSkillsBaseCharacter::ResetToWalk()
 {
+	GetWorldTimerManager().ClearTimer(AddGravityTimerHandle);
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 }
 
@@ -246,6 +267,14 @@ void ARPGSkillsBaseCharacter::SetGliding()
 	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 	GetCharacterMovement()->AirControl = 0.6f;
 	StartStaminaDrain();
+	GetWorldTimerManager().SetTimer(AddGravityTimerHandle, this, &ARPGSkillsBaseCharacter::AddGravityTimer, GetWorld()->GetDeltaSeconds(), true);
+}
+
+void ARPGSkillsBaseCharacter::SetFalling()
+{
+	ClearStaminaTimers();
+	ResetToWalk();
+	GetCharacterMovement()->AirControl = 0.35f;
 }
 
 void ARPGSkillsBaseCharacter::DrainStaminaTimer()
@@ -299,5 +328,10 @@ void ARPGSkillsBaseCharacter::ClearStaminaTimers()
 {
 	GetWorldTimerManager().ClearTimer(DrainStaminaTimerHandle);
 	GetWorldTimerManager().ClearTimer(RecoverStaminaTimerHandle);
+}
+
+void ARPGSkillsBaseCharacter::AddGravityTimer()
+{
+	LaunchCharacter(FVector(0.f, 0.f, - 100.f), false, true);
 }
 

@@ -69,6 +69,7 @@ public:
 	void SetWalking();
 	void SetExhausted();
 	void SetGliding();
+	void SetFalling();
 
 	void DrainStaminaTimer();
 	FTimerHandle DrainStaminaTimerHandle;
@@ -79,7 +80,8 @@ public:
 	void StartStaminaRecovery();
 
 	void ClearStaminaTimers();
-
+	void AddGravityTimer();
+	FTimerHandle AddGravityTimerHandle;
 
 	UPROPERTY(EditAnywhere, Category = "Components")
 	TObjectPtr<USpringArmComponent> CameraBoom;
@@ -121,7 +123,7 @@ public:
 	TSubclassOf<UUserWidget> OverlayClassReference;
 
 	UPROPERTY(EditAnywhere, Category = "Attributes")
-	FVector EnableGlideDistance = FVector(0.f, 0.f, 150.f);
+	FVector EnableGlideDistance = FVector(0.f, 0.f, -150.f);
 
 	float VelocityX;
 	float VelocityY;
@@ -130,4 +132,5 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void Landed(const FHitResult& Hit) override;
 };
