@@ -130,6 +130,8 @@ public:
 
 	TObjectPtr<URPGOverlayUI> UIReference;
 
+	bool bReadyToThrow = false;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Landed(const FHitResult& Hit) override;
