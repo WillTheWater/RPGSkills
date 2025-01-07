@@ -11,6 +11,7 @@ class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
 class URPGOverlayUI;
+class USkeletalMeshComponent;
 
 UENUM(BlueprintType)
 enum class EMovementTypes : uint8
@@ -88,6 +89,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Components")
 	TObjectPtr<UCameraComponent> FollowCamera;
+
+	UPROPERTY(EditAnywhere, Category = "Components")
+	TObjectPtr<USkeletalMeshComponent> Glider;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputMappingContext* IMC_RPGSkills;

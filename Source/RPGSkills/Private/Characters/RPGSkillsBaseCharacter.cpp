@@ -8,6 +8,7 @@
 #include "EnhancedInputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "UI/RPGOverlayUI.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "DrawDebugHelpers.h"
 
 ARPGSkillsBaseCharacter::ARPGSkillsBaseCharacter()
@@ -21,6 +22,10 @@ ARPGSkillsBaseCharacter::ARPGSkillsBaseCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>("FollowCamera");
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
+
+	Glider = CreateDefaultSubobject<USkeletalMeshComponent>("Glider");
+	Glider->SetupAttachment(GetMesh());
+	Glider->SetVisibility(false);
 }
 
 void ARPGSkillsBaseCharacter::BeginPlay()
@@ -69,7 +74,7 @@ void ARPGSkillsBaseCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	FString StaminaStr = FString::SanitizeFloat(CurrentStamina);
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, StaminaStr);
+	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, StaminaStr);
 
 }
 
@@ -95,9 +100,9 @@ void ARPGSkillsBaseCharacter::LocomotionManager(EMovementTypes NewMovementType)
 	if (CurrentMT == NewMovementType) { return; }
 	else { CurrentMT = NewMovementType; }
 
-	if (CurrentMT == EMovementTypes::MT_GLIDING)
+	if (Glider)
 	{
-		//TODO
+		Glider->SetVisibility(CurrentMT == EMovementTypes::MT_GLIDING);
 	}
 
 	switch (CurrentMT)
@@ -200,7 +205,7 @@ void ARPGSkillsBaseCharacter::JumpGlideStarted(const FInputActionValue& Value)
 	Params.AddIgnoredActor(this);
 	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
 
-	DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 5.f, 0, 3.f);
+	//DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 5.f, 0, 3.f);
 	if (bHit)
 	{
 
@@ -224,7 +229,7 @@ bool const ARPGSkillsBaseCharacter::IsCharacterExausted()
 
 void ARPGSkillsBaseCharacter::SetSprint()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::White, "Sprinting");
+	//GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::White, "Sprinting");
 	GetCharacterMovement()->MaxWalkSpeed = 1000.f;
 	GetCharacterMovement()->AirControl = 0.35f;
 	ResetToWalk();
@@ -239,7 +244,7 @@ void ARPGSkillsBaseCharacter::ResetToWalk()
 
 void ARPGSkillsBaseCharacter::SetWalking()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::White, "Set Walking");
+	//GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::White, "Set Walking");
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 	GetCharacterMovement()->AirControl = 0.05f;
 	ResetToWalk();
