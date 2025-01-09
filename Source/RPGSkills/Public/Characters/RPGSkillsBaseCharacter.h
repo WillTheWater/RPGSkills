@@ -24,6 +24,17 @@ enum class EMovementTypes : uint8
 	MT_FALLING UMETA(DisplayName = "Falling")
 };
 
+UENUM(BlueprintType)
+enum class ESkills : uint8
+{
+	SK_EMAX UMETA(DisplayName = EMAX),
+	SK_RBB UMETA(DisplayName = RBB),
+	SK_RBS UMETA(DisplayName = RBS),
+	SK_MAG UMETA(DisplayName = MAG),
+	SK_STASIS UMETA(DisplayName = STASIS),
+	SK_ICE UMETA(DisplayName = ICE)
+};
+
 UCLASS()
 class RPGSKILLS_API ARPGSkillsBaseCharacter : public ACharacter
 {
@@ -128,6 +139,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Attributes")
 	FVector EnableGlideDistance = FVector(0.f, 0.f, -150.f);
+
+	UPROPERTY(EditAnywhere, Category = "Skills")
+	ESkills ActiveSkill{ ESkills::SK_EMAX };
 
 	float VelocityX;
 	float VelocityY;
