@@ -92,6 +92,7 @@ void ARPGSkillsBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 	EIComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ARPGSkillsBaseCharacter::SprintStarted);
 	EIComponent->BindAction(JumpGlideAction, ETriggerEvent::Completed, this, &ARPGSkillsBaseCharacter::JumpGlideReleased);
 	EIComponent->BindAction(JumpGlideAction, ETriggerEvent::Started, this, &ARPGSkillsBaseCharacter::JumpGlideStarted);
+	EIComponent->BindAction(ToggleUIAction, ETriggerEvent::Started, this, &ARPGSkillsBaseCharacter::ToggleUIStarted);
 
 }
 
@@ -219,6 +220,33 @@ void ARPGSkillsBaseCharacter::JumpGlideStarted(const FInputActionValue& Value)
 void ARPGSkillsBaseCharacter::JumpGlideReleased(const FInputActionValue& Value)
 {
 	StopJumping();
+}
+
+void ARPGSkillsBaseCharacter::ToggleUIStarted(const FInputActionValue& Value)
+{
+	// TODO Cancel Cast
+
+	ARPGSkillsPlayerController* PC = Cast<ARPGSkillsPlayerController>(Controller);
+	if (GetWigdetSwitcherIndex() == 1)
+	{
+		PC->bShowMouseCursor = false;
+		PC->SetInputMode(FInputModeGameOnly());
+		PC->SetPause(false);
+		SetWidgetSwitcherIndex(0);
+	}
+	else
+	{
+		PC->bShowMouseCursor = true;
+		FInputModeGameAndUI InputHandle;
+		InputHandle.SetWidgetToFocus(UIReference->TakeWidget());
+		PC->SetInputMode(InputHandle);
+		PC->SetPause(true);
+		SetWidgetSwitcherIndex(1);
+	}
+}
+
+void ARPGSkillsBaseCharacter::ToggleUIReleased(const FInputActionValue& Value)
+{
 }
 
 bool const ARPGSkillsBaseCharacter::IsCharacterExausted()

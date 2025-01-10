@@ -1,7 +1,6 @@
 // WillTheWater
 
 #pragma once
-
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "RPGSkillsBaseCharacter.generated.h"
@@ -73,8 +72,20 @@ public:
 	UFUNCTION()
 	void JumpGlideReleased(const FInputActionValue& Value);
 
+	UFUNCTION()
+	void ToggleUIStarted(const FInputActionValue& Value);
+
+	UFUNCTION()
+	void ToggleUIReleased(const FInputActionValue& Value);
+
 	UFUNCTION(BlueprintCallable)
 	bool const IsCharacterExausted();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	int32 GetWigdetSwitcherIndex();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetWidgetSwitcherIndex(int32 Index);
 
 	void SetSprint();
 	void ResetToWalk();
@@ -119,6 +130,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* JumpGlideAction;
 
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* ToggleUIAction;
+
 	UPROPERTY(EditAnywhere, Category = "CharacterMovementState")
 	EMovementTypes CurrentMT = EMovementTypes::MT_EMAX;
 
@@ -146,6 +160,7 @@ public:
 	float VelocityX;
 	float VelocityY;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UserInterface")
 	TObjectPtr<URPGOverlayUI> UIReference;
 
 	bool bReadyToThrow = false;
