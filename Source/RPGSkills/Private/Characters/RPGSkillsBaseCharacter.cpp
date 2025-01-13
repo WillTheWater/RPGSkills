@@ -93,6 +93,8 @@ void ARPGSkillsBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 	EIComponent->BindAction(JumpGlideAction, ETriggerEvent::Completed, this, &ARPGSkillsBaseCharacter::JumpGlideReleased);
 	EIComponent->BindAction(JumpGlideAction, ETriggerEvent::Started, this, &ARPGSkillsBaseCharacter::JumpGlideStarted);
 	EIComponent->BindAction(ToggleUIAction, ETriggerEvent::Started, this, &ARPGSkillsBaseCharacter::ToggleUIStarted);
+	EIComponent->BindAction(PrepareSkillAction, ETriggerEvent::Started, this, &ARPGSkillsBaseCharacter::PrepareSkillStarted);
+	EIComponent->BindAction(CastSkillAction, ETriggerEvent::Started, this, &ARPGSkillsBaseCharacter::CastSkillStarted);
 
 }
 
@@ -247,6 +249,61 @@ void ARPGSkillsBaseCharacter::ToggleUIStarted(const FInputActionValue& Value)
 
 void ARPGSkillsBaseCharacter::ToggleUIReleased(const FInputActionValue& Value)
 {
+}
+
+void ARPGSkillsBaseCharacter::PrepareSkillStarted(const FInputActionValue& Value)
+{
+	ToggleSkillActivity();
+}
+
+void ARPGSkillsBaseCharacter::CastSkillStarted(const FInputActionValue& Value)
+{
+	switch (ActiveSkill)
+	{
+	case ESkills::SK_EMAX:
+		break;
+	case ESkills::SK_RBB:
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "Trigger Bomb");
+		break;
+	case ESkills::SK_RBS:
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "Trigger Remote");
+		break;
+	case ESkills::SK_MAG:
+		break;
+	case ESkills::SK_STASIS:
+		break;
+	case ESkills::SK_ICE:
+		break;
+	default:
+		break;
+	}
+}
+
+void ARPGSkillsBaseCharacter::ToggleSkillActivity()
+{
+	if (ActiveSkill == ESkills::SK_EMAX) { return; }
+	bShowCrosshair = !bShowCrosshair;
+	CrosshairAndCameraMode(bShowCrosshair);
+	LocomotionManager(EMovementTypes::MT_WALKING);
+	switch (ActiveSkill)
+	{
+	case ESkills::SK_EMAX:
+		break;
+	case ESkills::SK_RBB:
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Spawn Bomb");
+		break;
+	case ESkills::SK_RBS:
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Spawn Remote");
+		break;
+	case ESkills::SK_MAG:
+		break;
+	case ESkills::SK_STASIS:
+		break;
+	case ESkills::SK_ICE:
+		break;
+	default:
+		break;
+	}
 }
 
 bool const ARPGSkillsBaseCharacter::IsCharacterExausted()

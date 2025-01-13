@@ -78,6 +78,15 @@ public:
 	UFUNCTION()
 	void ToggleUIReleased(const FInputActionValue& Value);
 
+	UFUNCTION()
+	void PrepareSkillStarted(const FInputActionValue& Value);
+
+	UFUNCTION()
+	void CastSkillStarted(const FInputActionValue& Value);
+
+	UFUNCTION()
+	void ToggleSkillActivity();
+
 	UFUNCTION(BlueprintCallable)
 	bool const IsCharacterExausted();
 
@@ -86,6 +95,9 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void SetWidgetSwitcherIndex(int32 Index);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void CrosshairAndCameraMode(bool bShow);
 
 	void SetSprint();
 	void ResetToWalk();
@@ -106,7 +118,7 @@ public:
 	void AddGravityTimer();
 	FTimerHandle AddGravityTimerHandle;
 
-	UPROPERTY(EditAnywhere, Category = "Components")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	TObjectPtr<USpringArmComponent> CameraBoom;
 	
 	UPROPERTY(EditAnywhere, Category = "Components")
@@ -132,6 +144,12 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* ToggleUIAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* PrepareSkillAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* CastSkillAction;
 
 	UPROPERTY(EditAnywhere, Category = "CharacterMovementState")
 	EMovementTypes CurrentMT = EMovementTypes::MT_EMAX;
@@ -164,6 +182,7 @@ public:
 	TObjectPtr<URPGOverlayUI> UIReference;
 
 	bool bReadyToThrow = false;
+	bool bShowCrosshair = false;
 
 protected:
 	virtual void BeginPlay() override;
