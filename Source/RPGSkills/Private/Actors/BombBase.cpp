@@ -11,6 +11,12 @@ ABombBase::ABombBase()
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("Bomb Mesh");
 	MeshComponent->SetupAttachment(RootComponent);
+	MeshComponent->SetLinearDamping(0.35f);
+}
+
+void ABombBase::Detonate()
+{
+	
 }
 
 void ABombBase::BeginPlay()

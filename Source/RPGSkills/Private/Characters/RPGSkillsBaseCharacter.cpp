@@ -9,6 +9,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "UI/RPGOverlayUI.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Actors/BombBase.h"
 #include "DrawDebugHelpers.h"
 
 ARPGSkillsBaseCharacter::ARPGSkillsBaseCharacter()
@@ -26,6 +27,9 @@ ARPGSkillsBaseCharacter::ARPGSkillsBaseCharacter()
 	Glider = CreateDefaultSubobject<USkeletalMeshComponent>("Glider");
 	Glider->SetupAttachment(GetMesh());
 	Glider->SetVisibility(false);
+
+	BombReadyPosition = CreateDefaultSubobject<USceneComponent>("Bomb Ready Postion");
+	BombReadyPosition->SetupAttachment(GetMesh());
 }
 
 void ARPGSkillsBaseCharacter::BeginPlay()
@@ -74,7 +78,6 @@ void ARPGSkillsBaseCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	FString StaminaStr = FString::SanitizeFloat(CurrentStamina);
-	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, StaminaStr);
 
 }
 
@@ -263,10 +266,10 @@ void ARPGSkillsBaseCharacter::CastSkillStarted(const FInputActionValue& Value)
 	case ESkills::SK_EMAX:
 		break;
 	case ESkills::SK_RBB:
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "Trigger Bomb");
+		ThrowAndIgniteBomb(false);
 		break;
 	case ESkills::SK_RBS:
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "Trigger Remote");
+		ThrowAndIgniteBomb(true);
 		break;
 	case ESkills::SK_MAG:
 		break;
@@ -290,10 +293,10 @@ void ARPGSkillsBaseCharacter::ToggleSkillActivity()
 	case ESkills::SK_EMAX:
 		break;
 	case ESkills::SK_RBB:
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Spawn Bomb");
+		ToggleRemoteBomb();
 		break;
 	case ESkills::SK_RBS:
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Spawn Remote");
+		ToggleRemoteBomb();
 		break;
 	case ESkills::SK_MAG:
 		break;
@@ -304,6 +307,20 @@ void ARPGSkillsBaseCharacter::ToggleSkillActivity()
 	default:
 		break;
 	}
+}
+
+void ARPGSkillsBaseCharacter::ToggleRemoteBomb()
+{
+	if (bRBActivated)
+	{
+		bHandleBomb = false;
+		if (BombReference)
+		{
+			BombReference->Destroy();
+			BombReference = nullptr;
+		}
+	}
+	bRBActivated = !bRBActivated;
 }
 
 bool const ARPGSkillsBaseCharacter::IsCharacterExausted()
@@ -365,6 +382,40 @@ void ARPGSkillsBaseCharacter::SetFalling()
 	ClearStaminaTimers();
 	ResetToWalk();
 	GetCharacterMovement()->AirControl = 0.35f;
+}
+
+void ARPGSkillsBaseCharacter::ThrowAndIgniteBomb(bool bSphere)
+{
+	if (!bRBActivated) {return;}
+	if (BombReference)
+	{
+		if (bHandleBomb)
+		{
+			
+		}
+		else
+		{
+			
+		}
+	}
+	else
+	{
+		TSubclassOf<ABombBase> BombInstance;
+		if (bSphere)
+		{
+			BombInstance = SphereBombClass;
+		}
+		else
+		{
+			BombInstance = BoxBombClass;
+		}
+		if (BombInstance ==nullptr) {return;}
+		FVector SpawnLocation = BombReadyPosition->GetComponentLocation();
+		BombReference = GetWorld()->SpawnActor<ABombBase>(BombInstance, SpawnLocation, FRotator::ZeroRotator);
+		BombReference->AttachToComponent(BombReadyPosition, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		bHandleBomb = true;
+		bReadyToThrow = true;
+	}
 }
 
 void ARPGSkillsBaseCharacter::DrainStaminaTimer()

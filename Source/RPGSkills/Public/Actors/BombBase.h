@@ -16,13 +16,14 @@ class RPGSKILLS_API ABombBase : public AActor
 	
 public:	
 	ABombBase();
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	TObjectPtr<UParticleSystem> BombSpawn;
 
+	void Detonate();
 protected:
 	virtual void BeginPlay() override;
 };

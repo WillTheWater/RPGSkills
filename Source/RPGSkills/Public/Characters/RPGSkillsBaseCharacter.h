@@ -5,6 +5,8 @@
 #include "GameFramework/Character.h"
 #include "RPGSkillsBaseCharacter.generated.h"
 
+class ABombBase;
+struct FInputActionValue;
 class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
@@ -87,6 +89,9 @@ public:
 	UFUNCTION()
 	void ToggleSkillActivity();
 
+	UFUNCTION()
+	void ToggleRemoteBomb();
+
 	UFUNCTION(BlueprintCallable)
 	bool const IsCharacterExausted();
 
@@ -105,6 +110,8 @@ public:
 	void SetExhausted();
 	void SetGliding();
 	void SetFalling();
+
+	void ThrowAndIgniteBomb(bool bSphere);
 
 	void DrainStaminaTimer();
 	FTimerHandle DrainStaminaTimerHandle;
@@ -127,6 +134,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Components")
 	TObjectPtr<USkeletalMeshComponent> Glider;
 
+	UPROPERTY(EditAnywhere, Category = "Components")
+	TObjectPtr<USceneComponent> BombReadyPosition;
+	
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputMappingContext* IMC_RPGSkills;
 
@@ -175,6 +185,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Skills")
 	ESkills ActiveSkill{ ESkills::SK_EMAX };
 
+	UPROPERTY(EditAnywhere, Category = "Skills")
+	TSubclassOf<ABombBase> SphereBombClass;
+
+	UPROPERTY(EditAnywhere, Category = "Skills")
+	TSubclassOf<ABombBase> BoxBombClass;
+	
 	float VelocityX;
 	float VelocityY;
 
@@ -183,6 +199,9 @@ public:
 
 	bool bReadyToThrow = false;
 	bool bShowCrosshair = false;
+	bool bRBActivated = false;
+	bool bHandleBomb = false;
+	TObjectPtr<ABombBase> BombReference;
 
 protected:
 	virtual void BeginPlay() override;
