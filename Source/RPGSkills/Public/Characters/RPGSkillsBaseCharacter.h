@@ -96,7 +96,7 @@ public:
 	bool const IsCharacterExausted();
 
 	UFUNCTION(BlueprintImplementableEvent)
-	int32 GetWigdetSwitcherIndex();
+	int32 GetWidgetSwitcherIndex();
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void SetWidgetSwitcherIndex(int32 Index);
@@ -112,6 +112,7 @@ public:
 	void SetFalling();
 
 	void ThrowAndIgniteBomb(bool bSphere);
+	const FVector GetThrowDirection();
 
 	void DrainStaminaTimer();
 	FTimerHandle DrainStaminaTimerHandle;

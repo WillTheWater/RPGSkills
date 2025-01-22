@@ -29,7 +29,7 @@ ARPGSkillsBaseCharacter::ARPGSkillsBaseCharacter()
 	Glider->SetVisibility(false);
 
 	BombReadyPosition = CreateDefaultSubobject<USceneComponent>("Bomb Ready Postion");
-	BombReadyPosition->SetupAttachment(GetMesh());
+	BombReadyPosition->SetupAttachment(GetMesh(), TEXT("socket_head"));
 }
 
 void ARPGSkillsBaseCharacter::BeginPlay()
@@ -232,7 +232,7 @@ void ARPGSkillsBaseCharacter::ToggleUIStarted(const FInputActionValue& Value)
 	// TODO Cancel Cast
 
 	ARPGSkillsPlayerController* PC = Cast<ARPGSkillsPlayerController>(Controller);
-	if (GetWigdetSwitcherIndex() == 1)
+	if (GetWidgetSwitcherIndex() == 1)
 	{
 		PC->bShowMouseCursor = false;
 		PC->SetInputMode(FInputModeGameOnly());
@@ -391,11 +391,14 @@ void ARPGSkillsBaseCharacter::ThrowAndIgniteBomb(bool bSphere)
 	{
 		if (bHandleBomb)
 		{
-			
+			BombReference->MeshComponent->SetSimulatePhysics(true);
+			BombReference->MeshComponent->SetPhysicsLinearVelocity(GetThrowDirection());
+			bHandleBomb = false;
+			bReadyToThrow = false;
 		}
 		else
 		{
-			
+			BombReference->Destroy();
 		}
 	}
 	else
@@ -416,6 +419,15 @@ void ARPGSkillsBaseCharacter::ThrowAndIgniteBomb(bool bSphere)
 		bHandleBomb = true;
 		bReadyToThrow = true;
 	}
+}
+
+const FVector ARPGSkillsBaseCharacter::GetThrowDirection()
+{
+	FVector Final = FVector(FollowCamera->GetForwardVector().X, FollowCamera->GetForwardVector().Y, 0.f);
+	//Final.GetSafeNormal(.001f);
+	Final = Final + FVector(0, 0, 0.5f);
+	Final = Final * 1000.f;
+	return Final;
 }
 
 void ARPGSkillsBaseCharacter::DrainStaminaTimer()

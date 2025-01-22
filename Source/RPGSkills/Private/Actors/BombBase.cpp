@@ -16,7 +16,9 @@ ABombBase::ABombBase()
 
 void ABombBase::Detonate()
 {
-	
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BombExplosionVFX, MeshComponent->GetComponentLocation());
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), BombExplosionSFX, GetActorLocation());
+	GetWorld()->GetFirstPlayerController()->PlayerCameraManager->PlayWorldCameraShake(GetWorld(), BombExplosionShake, MeshComponent->GetComponentLocation(), 0.f, 2000.f, false);
 }
 
 void ABombBase::BeginPlay()
