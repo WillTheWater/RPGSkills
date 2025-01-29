@@ -230,9 +230,10 @@ void ARPGSkillsBaseCharacter::JumpGlideReleased(const FInputActionValue& Value)
 void ARPGSkillsBaseCharacter::ToggleUIStarted(const FInputActionValue& Value)
 {
 	// TODO Cancel Cast
-
 	ARPGSkillsPlayerController* PC = Cast<ARPGSkillsPlayerController>(Controller);
-	if (GetWidgetSwitcherIndex() == 1)
+	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, FString::Printf(TEXT("Widget Index: %d"), GetWidgetSwitcherInfo()));
+
+	if (GetWidgetSwitcherInfo() == 1)
 	{
 		PC->bShowMouseCursor = false;
 		PC->SetInputMode(FInputModeGameOnly());
@@ -247,11 +248,10 @@ void ARPGSkillsBaseCharacter::ToggleUIStarted(const FInputActionValue& Value)
 		PC->SetInputMode(InputHandle);
 		PC->SetPause(true);
 		SetWidgetSwitcherIndex(1);
-	}
-}
+		GEngine->AddOnScreenDebugMessage(1, 1, FColor::Red, "Toggle UI Triggered");
+		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, FString::Printf(TEXT("Widget Index: %d"), GetWidgetSwitcherInfo()));
 
-void ARPGSkillsBaseCharacter::ToggleUIReleased(const FInputActionValue& Value)
-{
+	}
 }
 
 void ARPGSkillsBaseCharacter::PrepareSkillStarted(const FInputActionValue& Value)

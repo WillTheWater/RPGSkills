@@ -78,9 +78,6 @@ public:
 	void ToggleUIStarted(const FInputActionValue& Value);
 
 	UFUNCTION()
-	void ToggleUIReleased(const FInputActionValue& Value);
-
-	UFUNCTION()
 	void PrepareSkillStarted(const FInputActionValue& Value);
 
 	UFUNCTION()
@@ -96,7 +93,7 @@ public:
 	bool const IsCharacterExausted();
 
 	UFUNCTION(BlueprintImplementableEvent)
-	int32 GetWidgetSwitcherIndex();
+	int32 GetWidgetSwitcherInfo();
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void SetWidgetSwitcherIndex(int32 Index);
