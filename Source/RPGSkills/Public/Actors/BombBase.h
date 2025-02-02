@@ -35,6 +35,7 @@ public:
 	TSubclassOf<UCameraShakeBase> BombExplosionShake;
 	
 	void Detonate();
+	
 protected:
 	virtual void BeginPlay() override;
 };

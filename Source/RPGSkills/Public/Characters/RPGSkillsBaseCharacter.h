@@ -74,6 +74,8 @@ public:
 	UFUNCTION()
 	void JumpGlideReleased(const FInputActionValue& Value);
 
+	void DeavtivateAllSkills();
+	
 	UFUNCTION()
 	void ToggleUIStarted(const FInputActionValue& Value);
 
@@ -198,6 +200,9 @@ public:
 	bool bReadyToThrow = false;
 	bool bShowCrosshair = false;
 	bool bRBActivated = false;
+	bool bMAGActivated = false;
+	bool bStasisActivated = false;
+	bool bIceActivated = false;
 	bool bHandleBomb = false;
 	TObjectPtr<ABombBase> BombReference;
 

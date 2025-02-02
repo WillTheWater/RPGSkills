@@ -218,6 +218,7 @@ void ARPGSkillsBaseCharacter::JumpGlideStarted(const FInputActionValue& Value)
 	}
 	else
 	{
+		DeavtivateAllSkills();
 		LocomotionManager(EMovementTypes::MT_GLIDING);
 	}
 }
@@ -227,11 +228,21 @@ void ARPGSkillsBaseCharacter::JumpGlideReleased(const FInputActionValue& Value)
 	StopJumping();
 }
 
+void ARPGSkillsBaseCharacter::DeavtivateAllSkills()
+{
+	if (!bRBActivated && !bMAGActivated && !bStasisActivated && !bIceActivated)
+	{
+		ToggleSkillActivity();
+		bReadyToThrow = false;
+	}
+}
+
 void ARPGSkillsBaseCharacter::ToggleUIStarted(const FInputActionValue& Value)
 {
 	// TODO Cancel Cast
 	ARPGSkillsPlayerController* PC = Cast<ARPGSkillsPlayerController>(Controller);
-	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, FString::Printf(TEXT("Widget Index: %d"), GetWidgetSwitcherInfo()));
+
+	DeavtivateAllSkills();
 
 	if (GetWidgetSwitcherInfo() == 1)
 	{
@@ -248,8 +259,6 @@ void ARPGSkillsBaseCharacter::ToggleUIStarted(const FInputActionValue& Value)
 		PC->SetInputMode(InputHandle);
 		PC->SetPause(true);
 		SetWidgetSwitcherIndex(1);
-		GEngine->AddOnScreenDebugMessage(1, 1, FColor::Red, "Toggle UI Triggered");
-		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, FString::Printf(TEXT("Widget Index: %d"), GetWidgetSwitcherInfo()));
 
 	}
 }
@@ -314,6 +323,7 @@ void ARPGSkillsBaseCharacter::ToggleRemoteBomb()
 	if (bRBActivated)
 	{
 		bHandleBomb = false;
+		bReadyToThrow = false;
 		if (BombReference)
 		{
 			BombReference->Destroy();
@@ -398,7 +408,8 @@ void ARPGSkillsBaseCharacter::ThrowAndIgniteBomb(bool bSphere)
 		}
 		else
 		{
-			BombReference->Destroy();
+			BombReference->Detonate();
+			BombReference = nullptr;
 		}
 	}
 	else
@@ -412,7 +423,7 @@ void ARPGSkillsBaseCharacter::ThrowAndIgniteBomb(bool bSphere)
 		{
 			BombInstance = BoxBombClass;
 		}
-		if (BombInstance ==nullptr) {return;}
+		if (BombInstance == nullptr) {return;}
 		FVector SpawnLocation = BombReadyPosition->GetComponentLocation();
 		BombReference = GetWorld()->SpawnActor<ABombBase>(BombInstance, SpawnLocation, FRotator::ZeroRotator);
 		BombReference->AttachToComponent(BombReadyPosition, FAttachmentTransformRules::SnapToTargetNotIncludingScale);

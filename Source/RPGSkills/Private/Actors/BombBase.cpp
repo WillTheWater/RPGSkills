@@ -16,9 +16,13 @@ ABombBase::ABombBase()
 
 void ABombBase::Detonate()
 {
+	GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::MakeRandomColor(),TEXT("Detonated"));
+	
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BombExplosionVFX, MeshComponent->GetComponentLocation());
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), BombExplosionSFX, GetActorLocation());
 	GetWorld()->GetFirstPlayerController()->PlayerCameraManager->PlayWorldCameraShake(GetWorld(), BombExplosionShake, MeshComponent->GetComponentLocation(), 0.f, 2000.f, false);
+
+	Destroy();
 }
 
 void ABombBase::BeginPlay()
