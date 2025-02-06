@@ -13,6 +13,7 @@ class UInputMappingContext;
 class UInputAction;
 class URPGOverlayUI;
 class USkeletalMeshComponent;
+class AStaticMeshActor;
 
 UENUM(BlueprintType)
 enum class EMovementTypes : uint8
@@ -47,6 +48,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+#pragma region Functions
 	UFUNCTION()
 	void LocomotionManager(EMovementTypes NewMovementType);
 
@@ -74,7 +76,6 @@ public:
 	UFUNCTION()
 	void JumpGlideReleased(const FInputActionValue& Value);
 
-	void DeavtivateAllSkills();
 	
 	UFUNCTION()
 	void ToggleUIStarted(const FInputActionValue& Value);
@@ -91,8 +92,11 @@ public:
 	UFUNCTION()
 	void ToggleRemoteBomb();
 
+	UFUNCTION()
+	void ToggleMagnesis();
+
 	UFUNCTION(BlueprintCallable)
-	bool const IsCharacterExausted();
+	bool IsCharacterExausted();
 
 	UFUNCTION(BlueprintImplementableEvent)
 	int32 GetWidgetSwitcherInfo();
@@ -112,6 +116,10 @@ public:
 
 	void ThrowAndIgniteBomb(bool bSphere);
 	const FVector GetThrowDirection();
+	void DeavtivateAllSkills();
+	void FilterOutAllMetalObjects();
+	void ReleaseMagnesis();
+	void UpdateMetalMaterial(TArray<AStaticMeshActor*> MetalArrayObject, UPrimitiveComponent* HoverMetalObject);
 
 	void DrainStaminaTimer();
 	FTimerHandle DrainStaminaTimerHandle;
@@ -124,6 +132,8 @@ public:
 	void ClearStaminaTimers();
 	void AddGravityTimer();
 	FTimerHandle AddGravityTimerHandle;
+
+#pragma endregion Functions
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	TObjectPtr<USpringArmComponent> CameraBoom;
@@ -182,14 +192,28 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Attributes")
 	FVector EnableGlideDistance = FVector(0.f, 0.f, -150.f);
 
-	UPROPERTY(EditAnywhere, Category = "Skills")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skills")
 	ESkills ActiveSkill{ ESkills::SK_EMAX };
 
-	UPROPERTY(EditAnywhere, Category = "Skills")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skills")
 	TSubclassOf<ABombBase> SphereBombClass;
 
-	UPROPERTY(EditAnywhere, Category = "Skills")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skills")
 	TSubclassOf<ABombBase> BoxBombClass;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skills")
+	TSubclassOf<AActor> StaticMeshClass;
+
+	TArray<AStaticMeshActor*> MetalActors;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Magnesis")
+	UMaterialInterface* MagnesisHoverMaterial = nullptr;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Magnesis")
+	UMaterialInterface* MagnesisDeactiveMaterial = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Magnesis")
+	UMaterialInterface* MagnesisNormalMaterial = nullptr;
 	
 	float VelocityX;
 	float VelocityY;
@@ -207,6 +231,7 @@ public:
 	TObjectPtr<ABombBase> BombReference;
 
 protected:
+	
 	virtual void BeginPlay() override;
 	virtual void Landed(const FHitResult& Hit) override;
 };

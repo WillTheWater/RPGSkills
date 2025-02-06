@@ -10,7 +10,8 @@
 #include "UI/RPGOverlayUI.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Actors/BombBase.h"
-#include "DrawDebugHelpers.h"
+#include "Engine/StaticMeshActor.h"
+#include "Kismet/GameplayStatics.h"
 
 ARPGSkillsBaseCharacter::ARPGSkillsBaseCharacter()
 {
@@ -54,6 +55,8 @@ void ARPGSkillsBaseCharacter::BeginPlay()
 			UIReference->AddToViewport();
 		}
 	}
+
+	FilterOutAllMetalObjects();
 }
 
 void ARPGSkillsBaseCharacter::Landed(const FHitResult& Hit)
@@ -237,6 +240,24 @@ void ARPGSkillsBaseCharacter::DeavtivateAllSkills()
 	}
 }
 
+void ARPGSkillsBaseCharacter::FilterOutAllMetalObjects()
+{
+	TArray<AActor*> TempMetalObjects;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), StaticMeshClass, TempMetalObjects);
+
+	for (AActor* MetalObject : TempMetalObjects)
+	{
+		AStaticMeshActor* MetalObjectActor = Cast<AStaticMeshActor>(MetalObject);
+		EPhysicalSurface SurfaceMaterial = MetalObjectActor->GetStaticMeshComponent()->GetMaterial(0)->GetPhysicalMaterial()->SurfaceType;
+		if (SurfaceMaterial == SurfaceType1)
+		{
+			MetalActors.AddUnique(MetalObjectActor);
+			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::MakeRandomColor(), MetalObjectActor->GetName());
+			
+		}
+	}
+}
+
 void ARPGSkillsBaseCharacter::ToggleUIStarted(const FInputActionValue& Value)
 {
 	// TODO Cancel Cast
@@ -308,6 +329,7 @@ void ARPGSkillsBaseCharacter::ToggleSkillActivity()
 		ToggleRemoteBomb();
 		break;
 	case ESkills::SK_MAG:
+		ToggleMagnesis();
 		break;
 	case ESkills::SK_STASIS:
 		break;
@@ -333,7 +355,47 @@ void ARPGSkillsBaseCharacter::ToggleRemoteBomb()
 	bRBActivated = !bRBActivated;
 }
 
-bool const ARPGSkillsBaseCharacter::IsCharacterExausted()
+void ARPGSkillsBaseCharacter::ToggleMagnesis()
+{
+	UpdateMetalMaterial(MetalActors, nullptr);
+	if (bMAGActivated)
+	{
+		ReleaseMagnesis();
+	}
+	bMAGActivated = !bMAGActivated;
+}
+
+void ARPGSkillsBaseCharacter::ReleaseMagnesis()
+{
+}
+
+void ARPGSkillsBaseCharacter::UpdateMetalMaterial(TArray<AStaticMeshActor*> MetalArrayObject,
+	UPrimitiveComponent* HoverMetalObject)
+{
+	for (AStaticMeshActor* MetalObjectActor : MetalArrayObject)
+	{
+		if (MetalObjectActor == nullptr) {return;}
+		UStaticMeshComponent* MetalObjectMesh = MetalObjectActor->GetStaticMeshComponent();
+		if (HoverMetalObject == MetalObjectMesh)
+		{
+			MetalObjectMesh->SetMaterial(0, MagnesisHoverMaterial);
+		}
+		else
+		{
+			if (bMAGActivated)
+			{
+				MetalObjectMesh->SetMaterial(0, MagnesisNormalMaterial);
+
+			}
+			else
+			{
+				MetalObjectMesh->SetMaterial(0, MagnesisDeactiveMaterial);
+			}
+		}
+	}
+}
+
+bool ARPGSkillsBaseCharacter::IsCharacterExausted()
 {
 	bool bEqual = CurrentMT == EMovementTypes::MT_EXHAUSTED;
 	return bEqual;
