@@ -120,6 +120,9 @@ public:
 	void FilterOutAllMetalObjects();
 	void ReleaseMagnesis();
 	void UpdateMetalMaterial(TArray<AStaticMeshActor*> MetalArrayObject, UPrimitiveComponent* HoverMetalObject);
+	void SelectOrReleaseMagObject();
+	void GrabMagObject();
+	void CameraLineTraceDirection(FVector &Start, FVector &End, const float Length);
 
 	void DrainStaminaTimer();
 	FTimerHandle DrainStaminaTimerHandle;
@@ -229,6 +232,8 @@ public:
 	bool bIceActivated = false;
 	bool bHandleBomb = false;
 	TObjectPtr<ABombBase> BombReference;
+
+	TObjectPtr<UPrimitiveComponent> MagnesisObject;
 
 protected:
 	

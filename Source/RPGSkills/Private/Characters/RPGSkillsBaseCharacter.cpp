@@ -1,6 +1,9 @@
 // WillTheWater
 
 #include "Characters/RPGSkillsBaseCharacter.h"
+
+#include <filesystem>
+
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Controllers/RPGSkillsPlayerController.h"
@@ -302,6 +305,7 @@ void ARPGSkillsBaseCharacter::CastSkillStarted(const FInputActionValue& Value)
 		ThrowAndIgniteBomb(true);
 		break;
 	case ESkills::SK_MAG:
+		SelectOrReleaseMagObject();
 		break;
 	case ESkills::SK_STASIS:
 		break;
@@ -393,6 +397,38 @@ void ARPGSkillsBaseCharacter::UpdateMetalMaterial(TArray<AStaticMeshActor*> Meta
 			}
 		}
 	}
+}
+
+void ARPGSkillsBaseCharacter::SelectOrReleaseMagObject()
+{
+	if (!bMAGActivated) { return; }
+	GrabMagObject();
+}
+
+void ARPGSkillsBaseCharacter::GrabMagObject()
+{
+	FHitResult HitResult;
+	FVector Start;
+	FVector End;
+	CameraLineTraceDirection(Start, End, 3000.f);
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+	GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
+	if (!HitResult.bBlockingHit) { return; }
+	MagnesisObject = HitResult.GetComponent();
+	if (MagnesisObject == nullptr) { return; }
+
+	if (!MagnesisObject->IsSimulatingPhysics()) return;
+	EPhysicalSurface Surface = UGameplayStatics::GetSurfaceType(HitResult);
+	if (Surface != SurfaceType1) { return; }
+
+	// TODO
+}
+
+void ARPGSkillsBaseCharacter::CameraLineTraceDirection(FVector& Start, FVector& End, const float Length)
+{
+	Start = FollowCamera->GetForwardVector();
+	End = Start + FollowCamera->GetForwardVector() * Length;
 }
 
 bool ARPGSkillsBaseCharacter::IsCharacterExausted()
