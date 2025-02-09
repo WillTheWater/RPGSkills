@@ -14,6 +14,7 @@ class UInputAction;
 class URPGOverlayUI;
 class USkeletalMeshComponent;
 class AStaticMeshActor;
+class UPhysicsHandleComponent;
 
 UENUM(BlueprintType)
 enum class EMovementTypes : uint8
@@ -123,6 +124,7 @@ public:
 	void SelectOrReleaseMagObject();
 	void GrabMagObject();
 	void CameraLineTraceDirection(FVector &Start, FVector &End, const float Length);
+	void MagDragObjectTick();
 
 	void DrainStaminaTimer();
 	FTimerHandle DrainStaminaTimerHandle;
@@ -149,6 +151,12 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Components")
 	TObjectPtr<USceneComponent> BombReadyPosition;
+
+	UPROPERTY(EditAnywhere, Category = "Components")
+	TObjectPtr<USceneComponent> PhysicsObjectHolder;
+
+	UPROPERTY(EditAnywhere, Category = "Components")
+	TObjectPtr<UPhysicsHandleComponent> PhysicsHandle;
 	
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputMappingContext* IMC_RPGSkills;
@@ -234,6 +242,7 @@ public:
 	TObjectPtr<ABombBase> BombReference;
 
 	TObjectPtr<UPrimitiveComponent> MagnesisObject;
+	TObjectPtr<UPrimitiveComponent> TempMagHitComp;
 
 protected:
 	

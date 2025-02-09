@@ -15,6 +15,7 @@
 #include "Actors/BombBase.h"
 #include "Engine/StaticMeshActor.h"
 #include "Kismet/GameplayStatics.h"
+#include "PhysicsEngine/PhysicsHandleComponent.h"
 
 ARPGSkillsBaseCharacter::ARPGSkillsBaseCharacter()
 {
@@ -34,6 +35,16 @@ ARPGSkillsBaseCharacter::ARPGSkillsBaseCharacter()
 
 	BombReadyPosition = CreateDefaultSubobject<USceneComponent>("Bomb Ready Postion");
 	BombReadyPosition->SetupAttachment(GetMesh(), TEXT("socket_head"));
+
+	PhysicsHandle = CreateDefaultSubobject<UPhysicsHandleComponent>("Physics Handle");
+	PhysicsHandle->LinearDamping = 100.0f;
+	PhysicsHandle->AngularDamping = 250.0f;
+	PhysicsHandle->LinearStiffness = 325.0f;
+	PhysicsHandle->AngularStiffness = 750.0f;
+	PhysicsHandle->InterpolationSpeed = 5.0f;
+
+	PhysicsObjectHolder = CreateDefaultSubobject<USceneComponent>("Physics Object Holder");
+	PhysicsObjectHolder->SetupAttachment(FollowCamera);
 }
 
 void ARPGSkillsBaseCharacter::BeginPlay()
@@ -83,7 +94,7 @@ void ARPGSkillsBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	FString StaminaStr = FString::SanitizeFloat(CurrentStamina);
+	MagDragObjectTick();
 
 }
 
@@ -236,7 +247,7 @@ void ARPGSkillsBaseCharacter::JumpGlideReleased(const FInputActionValue& Value)
 
 void ARPGSkillsBaseCharacter::DeavtivateAllSkills()
 {
-	if (!bRBActivated && !bMAGActivated && !bStasisActivated && !bIceActivated)
+	if (bRBActivated || bMAGActivated || bStasisActivated || bIceActivated)
 	{
 		ToggleSkillActivity();
 		bReadyToThrow = false;
@@ -361,16 +372,20 @@ void ARPGSkillsBaseCharacter::ToggleRemoteBomb()
 
 void ARPGSkillsBaseCharacter::ToggleMagnesis()
 {
-	UpdateMetalMaterial(MetalActors, nullptr);
 	if (bMAGActivated)
 	{
 		ReleaseMagnesis();
 	}
 	bMAGActivated = !bMAGActivated;
+	UpdateMetalMaterial(MetalActors, nullptr);
 }
 
 void ARPGSkillsBaseCharacter::ReleaseMagnesis()
 {
+	PhysicsHandle->ReleaseComponent();
+	PhysicsObjectHolder->SetRelativeLocationAndRotation(FVector::ZeroVector, FQuat::Identity);
+	MagnesisObject = nullptr;
+	TempMagHitComp = nullptr;
 }
 
 void ARPGSkillsBaseCharacter::UpdateMetalMaterial(TArray<AStaticMeshActor*> MetalArrayObject,
@@ -407,12 +422,18 @@ void ARPGSkillsBaseCharacter::SelectOrReleaseMagObject()
 
 void ARPGSkillsBaseCharacter::GrabMagObject()
 {
+	if (MagnesisObject)
+	{
+		ReleaseMagnesis();
+		return;
+	}
 	FHitResult HitResult;
 	FVector Start;
 	FVector End;
 	CameraLineTraceDirection(Start, End, 3000.f);
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
+	Params.bReturnPhysicalMaterial = true;
 	GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
 	if (!HitResult.bBlockingHit) { return; }
 	MagnesisObject = HitResult.GetComponent();
@@ -422,13 +443,59 @@ void ARPGSkillsBaseCharacter::GrabMagObject()
 	EPhysicalSurface Surface = UGameplayStatics::GetSurfaceType(HitResult);
 	if (Surface != SurfaceType1) { return; }
 
-	// TODO
+	FName CustomName;
+	FVector GrabLocation = MagnesisObject->GetComponentLocation();
+	FRotator GrabRotation(0.f, MagnesisObject->GetComponentRotation().Yaw, 0.f);
+	PhysicsHandle->GrabComponentAtLocationWithRotation(MagnesisObject, CustomName, GrabLocation, GrabRotation);
+	PhysicsObjectHolder->SetWorldLocation(MagnesisObject->GetComponentLocation());
 }
 
 void ARPGSkillsBaseCharacter::CameraLineTraceDirection(FVector& Start, FVector& End, const float Length)
 {
 	Start = FollowCamera->GetForwardVector();
 	End = Start + FollowCamera->GetForwardVector() * Length;
+}
+
+void ARPGSkillsBaseCharacter::MagDragObjectTick()
+{
+	if (!bMAGActivated) { return; }
+	if (MagnesisObject)
+	{
+		FVector NewLocation = PhysicsObjectHolder->GetComponentLocation();
+		FRotator NewRotation(0.f, PhysicsObjectHolder->GetComponentRotation().Yaw, 0.f);
+		PhysicsHandle->SetTargetLocationAndRotation(NewLocation, NewRotation);
+	}
+	else
+	{
+		FHitResult HitResult;
+		FVector Start;
+		FVector End;
+		CameraLineTraceDirection(Start, End, 3000.f);
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+		Params.bReturnPhysicalMaterial = true;
+		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
+		if (!HitResult.bBlockingHit)
+		{
+			TempMagHitComp = nullptr;
+			UpdateMetalMaterial(MetalActors, nullptr);
+		}
+		else
+		{
+			if (HitResult.GetComponent() == nullptr) {return;}
+			if (HitResult.GetComponent() == TempMagHitComp) { return; }
+			TempMagHitComp = HitResult.GetComponent();
+			EPhysicalSurface Surface = UGameplayStatics::GetSurfaceType(HitResult);
+			if (Surface != SurfaceType1 && TempMagHitComp->IsSimulatingPhysics())
+			{
+				UpdateMetalMaterial(MetalActors, TempMagHitComp);
+			}
+			else
+			{
+				UpdateMetalMaterial(MetalActors, nullptr);
+			}
+		}
+	}
 }
 
 bool ARPGSkillsBaseCharacter::IsCharacterExausted()
