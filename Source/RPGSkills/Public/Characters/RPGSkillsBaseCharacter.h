@@ -15,6 +15,8 @@ class URPGOverlayUI;
 class USkeletalMeshComponent;
 class AStaticMeshActor;
 class UPhysicsHandleComponent;
+class UParticleSystem;
+class UParticleSystemComponent;
 
 UENUM(BlueprintType)
 enum class EMovementTypes : uint8
@@ -225,6 +227,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Magnesis")
 	UMaterialInterface* MagnesisNormalMaterial = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Magnesis")
+	UParticleSystem* MagnesisParticle;
 	
 	float VelocityX;
 	float VelocityY;
@@ -243,7 +248,8 @@ public:
 
 	TObjectPtr<UPrimitiveComponent> MagnesisObject;
 	TObjectPtr<UPrimitiveComponent> TempMagHitComp;
-
+	TObjectPtr<UParticleSystemComponent> ParticleBeam;
+	
 protected:
 	
 	virtual void BeginPlay() override;

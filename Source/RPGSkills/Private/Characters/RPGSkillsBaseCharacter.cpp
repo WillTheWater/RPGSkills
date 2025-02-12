@@ -16,6 +16,7 @@
 #include "Engine/StaticMeshActor.h"
 #include "Kismet/GameplayStatics.h"
 #include "PhysicsEngine/PhysicsHandleComponent.h"
+#include "particles/ParticleSystemComponent.h"
 
 ARPGSkillsBaseCharacter::ARPGSkillsBaseCharacter()
 {
@@ -266,7 +267,7 @@ void ARPGSkillsBaseCharacter::FilterOutAllMetalObjects()
 		if (SurfaceMaterial == SurfaceType1)
 		{
 			MetalActors.AddUnique(MetalObjectActor);
-			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::MakeRandomColor(), MetalObjectActor->GetName());
+			//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::MakeRandomColor(), MetalObjectActor->GetName());
 			
 		}
 	}
@@ -386,6 +387,11 @@ void ARPGSkillsBaseCharacter::ReleaseMagnesis()
 	PhysicsObjectHolder->SetRelativeLocationAndRotation(FVector::ZeroVector, FQuat::Identity);
 	MagnesisObject = nullptr;
 	TempMagHitComp = nullptr;
+	if (ParticleBeam)
+	{
+		ParticleBeam->DestroyComponent();
+		ParticleBeam = nullptr;
+	}
 }
 
 void ARPGSkillsBaseCharacter::UpdateMetalMaterial(TArray<AStaticMeshActor*> MetalArrayObject,
@@ -448,11 +454,13 @@ void ARPGSkillsBaseCharacter::GrabMagObject()
 	FRotator GrabRotation(0.f, MagnesisObject->GetComponentRotation().Yaw, 0.f);
 	PhysicsHandle->GrabComponentAtLocationWithRotation(MagnesisObject, CustomName, GrabLocation, GrabRotation);
 	PhysicsObjectHolder->SetWorldLocation(MagnesisObject->GetComponentLocation());
+
+	ParticleBeam = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MagnesisParticle, GetActorLocation());
 }
 
 void ARPGSkillsBaseCharacter::CameraLineTraceDirection(FVector& Start, FVector& End, const float Length)
 {
-	Start = FollowCamera->GetForwardVector();
+	Start = FollowCamera->GetComponentLocation();
 	End = Start + FollowCamera->GetForwardVector() * Length;
 }
 
@@ -464,6 +472,16 @@ void ARPGSkillsBaseCharacter::MagDragObjectTick()
 		FVector NewLocation = PhysicsObjectHolder->GetComponentLocation();
 		FRotator NewRotation(0.f, PhysicsObjectHolder->GetComponentRotation().Yaw, 0.f);
 		PhysicsHandle->SetTargetLocationAndRotation(NewLocation, NewRotation);
+
+		if (ParticleBeam)
+		{
+			ParticleBeam->SetBeamSourcePoint(0, GetActorLocation(), 0);
+			ParticleBeam->SetBeamSourcePoint(1, GetActorLocation(), 0);
+			ParticleBeam->SetBeamSourcePoint(2, GetActorLocation(), 0);
+			ParticleBeam->SetBeamTargetPoint(0, MagnesisObject->GetComponentLocation(), 0);
+			ParticleBeam->SetBeamTargetPoint(1, MagnesisObject->GetComponentLocation(), 0);
+			ParticleBeam->SetBeamTargetPoint(2, MagnesisObject->GetComponentLocation(), 0);
+		}
 	}
 	else
 	{
@@ -486,7 +504,7 @@ void ARPGSkillsBaseCharacter::MagDragObjectTick()
 			if (HitResult.GetComponent() == TempMagHitComp) { return; }
 			TempMagHitComp = HitResult.GetComponent();
 			EPhysicalSurface Surface = UGameplayStatics::GetSurfaceType(HitResult);
-			if (Surface != SurfaceType1 && TempMagHitComp->IsSimulatingPhysics())
+			if (Surface == SurfaceType1 && TempMagHitComp->IsSimulatingPhysics())
 			{
 				UpdateMetalMaterial(MetalActors, TempMagHitComp);
 			}
