@@ -13,6 +13,7 @@
 #include "UI/RPGOverlayUI.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Actors/BombBase.h"
+#include "Actors/Ice.h"
 #include "Engine/StaticMeshActor.h"
 #include "Kismet/GameplayStatics.h"
 #include "PhysicsEngine/PhysicsHandleComponent.h"
@@ -96,7 +97,7 @@ void ARPGSkillsBaseCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	MagDragObjectTick();
-
+	UpdateIceTick(DeltaTime);
 }
 
 void ARPGSkillsBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -350,6 +351,7 @@ void ARPGSkillsBaseCharacter::ToggleSkillActivity()
 	case ESkills::SK_STASIS:
 		break;
 	case ESkills::SK_ICE:
+		ToggleIceMode();
 		break;
 	default:
 		break;
@@ -379,6 +381,18 @@ void ARPGSkillsBaseCharacter::ToggleMagnesis()
 	}
 	bMAGActivated = !bMAGActivated;
 	UpdateMetalMaterial(MetalActors, nullptr);
+}
+
+void ARPGSkillsBaseCharacter::ToggleIceMode()
+{
+	if (bIceActivated)
+	{
+		DeactivateIce();
+	}
+	else
+	{
+		ActivateIce();
+	}
 }
 
 void ARPGSkillsBaseCharacter::ReleaseMagnesis()
@@ -514,6 +528,41 @@ void ARPGSkillsBaseCharacter::MagDragObjectTick()
 			}
 		}
 	}
+}
+
+void ARPGSkillsBaseCharacter::ActivateIce()
+{
+	FHitResult HitResult;
+	FVector Start;
+	FVector End;
+	CameraLineTraceDirection(Start, End, 3000.f);
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+	Params.bReturnPhysicalMaterial = true;
+	GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
+	if (!HitResult.bBlockingHit) { return; }
+	AActor* TempActor = GetWorld()->SpawnActor<AActor>(IceActorClass, HitResult.Location, FRotator::ZeroRotator);
+	if (!TempActor) { return; }
+	IceReference = Cast<AIce>(TempActor);
+	if (!IceReference) { return; }
+	bIceActivated = true;
+
+	// TODO
+}
+
+void ARPGSkillsBaseCharacter::DeactivateIce()
+{
+	// TODO
+	if (IceReference)
+	{
+		IceReference->Destroy();
+		IceReference = nullptr;
+	}
+	bIceActivated = false;
+}
+
+void ARPGSkillsBaseCharacter::UpdateIceTick(float DeltaTime)
+{
 }
 
 bool ARPGSkillsBaseCharacter::IsCharacterExausted()

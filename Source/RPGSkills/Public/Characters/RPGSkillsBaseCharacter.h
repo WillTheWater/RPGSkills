@@ -5,6 +5,7 @@
 #include "GameFramework/Character.h"
 #include "RPGSkillsBaseCharacter.generated.h"
 
+class AIce;
 class ABombBase;
 struct FInputActionValue;
 class USpringArmComponent;
@@ -98,6 +99,9 @@ public:
 	UFUNCTION()
 	void ToggleMagnesis();
 
+	UFUNCTION()
+	void ToggleIceMode();
+
 	UFUNCTION(BlueprintCallable)
 	bool IsCharacterExausted();
 
@@ -127,6 +131,9 @@ public:
 	void GrabMagObject();
 	void CameraLineTraceDirection(FVector &Start, FVector &End, const float Length);
 	void MagDragObjectTick();
+	void ActivateIce();
+	void DeactivateIce();
+	void UpdateIceTick(float DeltaTime);
 
 	void DrainStaminaTimer();
 	FTimerHandle DrainStaminaTimerHandle;
@@ -230,6 +237,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Magnesis")
 	UParticleSystem* MagnesisParticle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ice")
+	TSubclassOf<AActor> IceActorClass;
 	
 	float VelocityX;
 	float VelocityY;
@@ -249,6 +259,7 @@ public:
 	TObjectPtr<UPrimitiveComponent> MagnesisObject;
 	TObjectPtr<UPrimitiveComponent> TempMagHitComp;
 	TObjectPtr<UParticleSystemComponent> ParticleBeam;
+	AIce* IceReference;
 	
 protected:
 	
