@@ -16,6 +16,7 @@
 #include "Actors/Ice.h"
 #include "Engine/StaticMeshActor.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "PhysicsEngine/PhysicsHandleComponent.h"
 #include "particles/ParticleSystemComponent.h"
 
@@ -563,6 +564,32 @@ void ARPGSkillsBaseCharacter::DeactivateIce()
 
 void ARPGSkillsBaseCharacter::UpdateIceTick(float DeltaTime)
 {
+	if (!IceReference || !bIceActivated) { return; }
+	FHitResult HitResult;
+	FVector Start;
+	FVector End;
+	FCollisionObjectQueryParams ObjectParams;
+	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+	CameraLineTraceDirection(Start, End, 5000.f);
+	bool bHitAnything = GetWorld()->LineTraceSingleByObjectType(HitResult, Start, End, ObjectParams, Params);
+
+	if (!bHitAnything)
+	{
+		IceReference->BaseSceneRoot->SetVisibility(false, true);
+		return;
+	}
+
+	IceReference->BaseSceneRoot->SetVisibility(true, true);
+	FVector TargetLocation = HitResult.Location;
+	FVector FinalLocation = UKismetMathLibrary::VInterpTo(IceReference->GetActorLocation(), TargetLocation, DeltaTime, 10.f);
+	IceReference->SetActorLocation(FinalLocation);
+	FRotator Rotator = UKismetMathLibrary::MakeRotFromZ(HitResult.ImpactNormal);
+	IceReference->SetActorRotation(FRotator(Rotator));
+
+	// TODO
+	
 }
 
 bool ARPGSkillsBaseCharacter::IsCharacterExausted()
