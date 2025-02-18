@@ -324,6 +324,7 @@ void ARPGSkillsBaseCharacter::CastSkillStarted(const FInputActionValue& Value)
 	case ESkills::SK_STASIS:
 		break;
 	case ESkills::SK_ICE:
+		CreateIce();
 		break;
 	default:
 		break;
@@ -588,7 +589,20 @@ void ARPGSkillsBaseCharacter::UpdateIceTick(float DeltaTime)
 	FRotator Rotator = UKismetMathLibrary::MakeRotFromZ(HitResult.ImpactNormal);
 	IceReference->SetActorRotation(FRotator(Rotator));
 
-	// TODO
+	IceReference->bCanPlace = IceReference->CheckOverlapping();
+	if (IceReference->bCanPlace)
+	{
+		IceReference->IceMesh->SetMaterial(0, IceEnableMaterial);
+	}
+	else
+	{
+		IceReference->IceMesh->SetMaterial(0, IceDisableMaterial);		
+	}
+	
+}
+
+void ARPGSkillsBaseCharacter::CreateIce()
+{
 	
 }
 

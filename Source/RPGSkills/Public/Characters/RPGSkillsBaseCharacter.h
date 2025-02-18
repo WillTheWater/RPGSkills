@@ -134,6 +134,7 @@ public:
 	void ActivateIce();
 	void DeactivateIce();
 	void UpdateIceTick(float DeltaTime);
+	void CreateIce();
 
 	void DrainStaminaTimer();
 	FTimerHandle DrainStaminaTimerHandle;
@@ -240,6 +241,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ice")
 	TSubclassOf<AActor> IceActorClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ice")
+	UMaterialInterface* IceDisableMaterial = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ice")
+	UMaterialInterface* IceEnableMaterial = nullptr;
 	
 	float VelocityX;
 	float VelocityY;

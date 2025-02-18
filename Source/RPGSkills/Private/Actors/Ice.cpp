@@ -24,6 +24,8 @@ AIce::AIce()
 
 	SolidBoxComp = CreateDefaultSubobject<UBoxComponent>("Solid Box");
 	SolidBoxComp->SetupAttachment(BaseSceneRoot);
+	SolidBoxComp->SetCollisionObjectType(ECC_WorldStatic);
+	SolidBoxComp->SetCollisionResponseToAllChannels(ECR_Block);
 	SolidBoxComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
@@ -41,3 +43,27 @@ void AIce::Tick(float DeltaTime)
 
 }
 
+
+bool AIce::CheckOverlapping()
+{
+	TArray<FHitResult> Hits;
+	FVector Start = CheckOverlapComp->GetComponentLocation();
+	FVector End = Start;
+	FQuat Rot = CheckOverlapComp->GetComponentRotation().Quaternion();
+	FCollisionShape Collision = FCollisionShape::MakeBox(CheckOverlapComp->GetScaledBoxExtent());
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+	GetWorld()->SweepMultiByChannel(Hits, Start, End, Rot, ECC_Visibility, Collision, Params);
+
+	for (auto Hit : Hits)
+	{
+		ECollisionChannel TempObject = Hit.GetComponent()->GetCollisionObjectType();
+		//if (TempObject != ECC_GameTraceChannel1)
+		if (TempObject == ECC_WorldStatic)
+		{
+			return false;
+		}
+	}
+	return true;
+	
+}
