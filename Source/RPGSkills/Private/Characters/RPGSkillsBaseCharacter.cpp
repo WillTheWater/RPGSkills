@@ -334,6 +334,9 @@ void ARPGSkillsBaseCharacter::CastSkillStarted(const FInputActionValue& Value)
 void ARPGSkillsBaseCharacter::ToggleSkillActivity()
 {
 	if (ActiveSkill == ESkills::SK_EMAX) { return; }
+
+	if (GetWidgetSwitcherInfo() == 1) {return;}
+	
 	bShowCrosshair = !bShowCrosshair;
 	CrosshairAndCameraMode(bShowCrosshair);
 	LocomotionManager(EMovementTypes::MT_WALKING);

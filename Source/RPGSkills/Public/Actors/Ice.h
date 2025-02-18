@@ -4,9 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include  "Components/TimelineComponent.h"
 #include "Ice.generated.h"
 
 class UBoxComponent;
+class UCurveFloat;
+struct FTimeline;
 
 UCLASS()
 class RPGSKILLS_API AIce : public AActor
@@ -32,7 +35,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<AIce> IceClass;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UCurveFloat* CollisionCurve;
+
 	bool bCanPlace = false;
+	FVector ExtendStart;
+	FVector ExtendEnd;
+	FVector RelativeStart;
+	FVector RelativeEnd;
+	FTimeline CollisionTimeline;
 
 protected:
 	// Called when the game starts or when spawned
@@ -44,6 +55,9 @@ public:
 	bool CheckOverlapping();
 	void SpawnIce();
 	void EnableCollision();
+
+	UFUNCTION()
+	void CollisionUpdate(float DeltaTime);
 
 };
 

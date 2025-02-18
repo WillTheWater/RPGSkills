@@ -33,14 +33,25 @@ AIce::AIce()
 void AIce::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	if (CollisionCurve)
+	{
+		FOnTimelineFloat TFCollisionHandle;
+		TFCollisionHandle.BindUFunction(this, FName("CollisionUpdate"));
+
+		CollisionTimeline.AddInterpFloat(CollisionCurve, TFCollisionHandle);
+		ExtendStart = SolidBoxComp->GetScaledBoxExtent();
+		ExtendEnd = FVector(SolidBoxComp->GetScaledBoxExtent().X, SolidBoxComp->GetScaledBoxExtent().Y, 100.f);
+		RelativeStart = SolidBoxComp->GetRelativeLocation();
+		RelativeEnd = FVector(SolidBoxComp->GetRelativeLocation().X, SolidBoxComp->GetRelativeLocation().Y, 100.f);
+		
+	}
 }
 
 // Called every frame
 void AIce::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	CollisionTimeline.TickTimeline(DeltaTime);
 }
 
 
@@ -79,5 +90,13 @@ void AIce::SpawnIce()
 void AIce::EnableCollision()
 {
 	SolidBoxComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	
+	CollisionTimeline.PlayFromStart();
+}
+
+void AIce::CollisionUpdate(float DeltaTime)
+{
+	FVector NewBoxExtend = FMath::Lerp(ExtendStart, ExtendEnd, DeltaTime);
+	SolidBoxComp->SetBoxExtent(NewBoxExtend);
+	FVector NewRelativeLocation = FMath::Lerp(RelativeStart, RelativeEnd, DeltaTime);
+	SolidBoxComp->SetRelativeLocation(NewRelativeLocation);
 }
