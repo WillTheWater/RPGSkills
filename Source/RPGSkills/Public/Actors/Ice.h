@@ -29,6 +29,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UBoxComponent> SolidBoxComp;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<AIce> IceClass;
+
 	bool bCanPlace = false;
 
 protected:
@@ -39,6 +42,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	bool CheckOverlapping();
+	void SpawnIce();
+	void EnableCollision();
 
 };
 

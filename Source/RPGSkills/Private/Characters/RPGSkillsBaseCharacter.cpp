@@ -603,7 +603,10 @@ void ARPGSkillsBaseCharacter::UpdateIceTick(float DeltaTime)
 
 void ARPGSkillsBaseCharacter::CreateIce()
 {
-	
+	if (bIceActivated && IceReference)
+	{
+		IceReference->SpawnIce();
+	}
 }
 
 bool ARPGSkillsBaseCharacter::IsCharacterExausted()

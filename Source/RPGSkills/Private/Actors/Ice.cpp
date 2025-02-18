@@ -67,3 +67,17 @@ bool AIce::CheckOverlapping()
 	return true;
 	
 }
+
+void AIce::SpawnIce()
+{
+	if (!bCanPlace) {return;}
+	AIce* IcePlatform = GetWorld()->SpawnActor<AIce>(IceClass, GetActorLocation(), GetActorRotation());
+	if (!IcePlatform) {return;}
+	IcePlatform->EnableCollision();
+}
+
+void AIce::EnableCollision()
+{
+	SolidBoxComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	
+}
