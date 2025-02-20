@@ -396,6 +396,7 @@ void ARPGSkillsBaseCharacter::ToggleIceMode()
 	}
 	else
 	{
+		bIceActivated = true;
 		ActivateIce();
 	}
 }
@@ -540,7 +541,7 @@ void ARPGSkillsBaseCharacter::ActivateIce()
 	FHitResult HitResult;
 	FVector Start;
 	FVector End;
-	CameraLineTraceDirection(Start, End, 3000.f);
+	CameraLineTraceDirection(Start, End, 10000.f);
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
 	Params.bReturnPhysicalMaterial = true;
@@ -550,16 +551,18 @@ void ARPGSkillsBaseCharacter::ActivateIce()
 	if (!TempActor) { return; }
 	IceReference = Cast<AIce>(TempActor);
 	if (!IceReference) { return; }
-	bIceActivated = true;
 
-	// TODO
+	if (IceReference)
+	{
+		IceReference->StartToPlayAnimationLoop();
+	}
 }
 
 void ARPGSkillsBaseCharacter::DeactivateIce()
 {
-	// TODO
 	if (IceReference)
 	{
+		IceReference->StartToPlayAnimationLoop();
 		IceReference->Destroy();
 		IceReference = nullptr;
 	}

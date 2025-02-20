@@ -2,6 +2,7 @@
 
 #include "Actors/Ice.h"
 
+#include "MaterialHLSLTree.h"
 #include "Components/BoxComponent.h"
 
 AIce::AIce()
@@ -36,14 +37,26 @@ void AIce::BeginPlay()
 	if (CollisionCurve)
 	{
 		FOnTimelineFloat TFCollisionHandle;
+		FOnTimelineEvent TFCollisionFinishedHandle;
 		TFCollisionHandle.BindUFunction(this, FName("CollisionUpdate"));
+		TFCollisionFinishedHandle.BindUFunction(this, FName("CollisionFinished"));
 
 		CollisionTimeline.AddInterpFloat(CollisionCurve, TFCollisionHandle);
+		VisualCubeTimeline.SetTimelineFinishedFunc(TFCollisionFinishedHandle);
 		ExtendStart = SolidBoxComp->GetScaledBoxExtent();
 		ExtendEnd = FVector(SolidBoxComp->GetScaledBoxExtent().X, SolidBoxComp->GetScaledBoxExtent().Y, 100.f);
 		RelativeStart = SolidBoxComp->GetRelativeLocation();
 		RelativeEnd = FVector(SolidBoxComp->GetRelativeLocation().X, SolidBoxComp->GetRelativeLocation().Y, 100.f);
 		
+	}
+	if (VisualCubeCurve)
+	{
+		FOnTimelineFloat TFVCHandle;
+		TFVCHandle.BindUFunction(this, FName("VisualCubeUpdate"));
+
+		VisualCubeTimeline.AddInterpFloat(VisualCubeCurve, TFVCHandle);
+		WorldScaleStart = FVector(IceMesh->GetComponentScale().X, IceMesh->GetComponentScale().Y, 0.1f);
+		WorldScaleEnd = FVector(IceMesh->GetComponentScale().X, IceMesh->GetComponentScale().Y, 2.f);
 	}
 }
 
@@ -52,6 +65,7 @@ void AIce::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	CollisionTimeline.TickTimeline(DeltaTime);
+	VisualCubeTimeline.TickTimeline(DeltaTime);
 }
 
 
@@ -91,6 +105,8 @@ void AIce::EnableCollision()
 {
 	SolidBoxComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	CollisionTimeline.PlayFromStart();
+	VisualCubeTimeline.SetPlayRate(1.f);
+	VisualCubeTimeline.PlayFromStart();
 }
 
 void AIce::CollisionUpdate(float DeltaTime)
@@ -99,4 +115,27 @@ void AIce::CollisionUpdate(float DeltaTime)
 	SolidBoxComp->SetBoxExtent(NewBoxExtend);
 	FVector NewRelativeLocation = FMath::Lerp(RelativeStart, RelativeEnd, DeltaTime);
 	SolidBoxComp->SetRelativeLocation(NewRelativeLocation);
+}
+
+void AIce::CollisionFinished()
+{
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::MakeRandomColor(), FString("Collision Finished"));
+}
+
+void AIce::VisualCubeUpdate(float DeltaTime)
+{
+	FVector NewWorldScale = FMath::Lerp(WorldScaleStart, WorldScaleEnd, DeltaTime);
+	IceMesh->SetWorldScale3D(NewWorldScale);
+}
+
+void AIce::StartToPlayAnimationLoop()
+{
+	VisualCubeTimeline.SetLooping(true);
+	VisualCubeTimeline.SetPlayRate(2.f);
+	VisualCubeTimeline.PlayFromStart();
+}
+
+void AIce::StopToPlayAnimationLoop()
+{
+	VisualCubeTimeline.Stop();
 }

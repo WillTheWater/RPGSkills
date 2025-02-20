@@ -38,12 +38,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UCurveFloat* CollisionCurve;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UCurveFloat* VisualCubeCurve;
+
 	bool bCanPlace = false;
 	FVector ExtendStart;
 	FVector ExtendEnd;
 	FVector RelativeStart;
 	FVector RelativeEnd;
+	FVector WorldScaleStart;
+	FVector WorldScaleEnd;
 	FTimeline CollisionTimeline;
+	FTimeline VisualCubeTimeline;
 
 protected:
 	// Called when the game starts or when spawned
@@ -59,5 +65,13 @@ public:
 	UFUNCTION()
 	void CollisionUpdate(float DeltaTime);
 
+	UFUNCTION()
+	void CollisionFinished();
+
+	UFUNCTION()
+	void VisualCubeUpdate(float DeltaTime);
+
+	void StartToPlayAnimationLoop();
+	void StopToPlayAnimationLoop();
 };
 
