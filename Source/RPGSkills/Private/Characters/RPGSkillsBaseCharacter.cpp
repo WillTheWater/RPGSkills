@@ -14,6 +14,8 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Actors/BombBase.h"
 #include "Actors/Ice.h"
+#include "Actors/Stasis.h"
+#include "Components/ArrowComponent.h"
 #include "Engine/StaticMeshActor.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -322,6 +324,7 @@ void ARPGSkillsBaseCharacter::CastSkillStarted(const FInputActionValue& Value)
 		SelectOrReleaseMagObject();
 		break;
 	case ESkills::SK_STASIS:
+		AddStasisForce();
 		break;
 	case ESkills::SK_ICE:
 		CreateIce();
@@ -354,6 +357,7 @@ void ARPGSkillsBaseCharacter::ToggleSkillActivity()
 		ToggleMagnesis();
 		break;
 	case ESkills::SK_STASIS:
+		ToggleStasisMode();
 		break;
 	case ESkills::SK_ICE:
 		ToggleIceMode();
@@ -399,6 +403,11 @@ void ARPGSkillsBaseCharacter::ToggleIceMode()
 		bIceActivated = true;
 		ActivateIce();
 	}
+}
+
+void ARPGSkillsBaseCharacter::ToggleStasisMode()
+{
+	bStasisActivated = !bStasisActivated;
 }
 
 void ARPGSkillsBaseCharacter::ReleaseMagnesis()
@@ -779,5 +788,90 @@ void ARPGSkillsBaseCharacter::ClearStaminaTimers()
 void ARPGSkillsBaseCharacter::AddGravityTimer()
 {
 	LaunchCharacter(FVector(0.f, 0.f, - 100.f), false, true);
+}
+
+void ARPGSkillsBaseCharacter::AddStasisForce()
+{
+	if (!bStasisActivated) {return;}
+	StartStasis();
+}
+
+void ARPGSkillsBaseCharacter::StartStasis()
+{
+	UPrimitiveComponent* TempComponent = nullptr;
+	bool bSimPhys = false;
+	if (StasisComponent)
+	{
+		StasisTrace(TempComponent, bSimPhys);
+		if (TempComponent != StasisComponent) { return; }
+		AddForceToStasisActor();
+	}
+	else
+	{
+		StasisTrace(TempComponent, bSimPhys);
+		if (!bSimPhys) { return; }
+		StasisComponent = TempComponent;
+		StasisComponent->SetSimulatePhysics(false);
+
+		DefaultStasisMaterial = StasisComponent->GetMaterial(0);
+		if (StasisHighlightMaterial)
+		{
+			StasisComponent->SetMaterial(0, StasisHighlightMaterial);
+		}
+		GetWorld()->GetTimerManager().SetTimer(StasisTimer, this, &ARPGSkillsBaseCharacter::BreakStasis, 5.0f, false);
+	}
+}
+
+void ARPGSkillsBaseCharacter::StasisTrace(UPrimitiveComponent*& HitComponent, bool& bSimlatePhysics)
+{
+	FHitResult HitResult;
+	FVector Start;
+	FVector End;
+	CameraLineTraceDirection(Start, End, 3000.f);
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
+	if (bHit)
+	{
+		HitComponent = HitResult.GetComponent();
+		bSimlatePhysics = HitResult.GetComponent()->IsSimulatingPhysics();
+	}
+	else
+	{
+		HitComponent = nullptr;
+		bSimlatePhysics = false;
+	}
+}
+
+void ARPGSkillsBaseCharacter::AddForceToStasisActor()
+{
+	if (StasisForce == nullptr)
+	{
+		StasisForce = GetWorld()->SpawnActor<AStasis>(StasisActorClass, StasisComponent->GetComponentLocation(), FRotator::ZeroRotator);
+	}
+
+	FRotator Rotator = UKismetMathLibrary::Conv_VectorToRotator(FollowCamera->GetForwardVector());
+	UArrowComponent* StasisArrow = StasisForce->GetIndicatorArrow();
+	StasisArrow->SetWorldRotation(Rotator);
+	StasisForce->UpdateForceInfo();
+}
+
+void ARPGSkillsBaseCharacter::BreakStasis()
+{
+	StasisComponent->SetSimulatePhysics(true);
+	if (StasisForce)
+	{
+		FName TempName;
+		StasisComponent->AddImpulse(StasisForce->GetImpulse(), TempName, true);
+		StasisComponent->SetMaterial(0, DefaultStasisMaterial);
+		StasisComponent = nullptr;
+		StasisForce->Destroy();
+		StasisForce = nullptr;
+	}
+	else
+	{
+		StasisComponent->SetMaterial(0, DefaultStasisMaterial);
+		StasisComponent = nullptr;
+	}
 }
 

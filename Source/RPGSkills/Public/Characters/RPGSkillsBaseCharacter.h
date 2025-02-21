@@ -18,6 +18,7 @@ class AStaticMeshActor;
 class UPhysicsHandleComponent;
 class UParticleSystem;
 class UParticleSystemComponent;
+class AStasis;
 
 UENUM(BlueprintType)
 enum class EMovementTypes : uint8
@@ -102,6 +103,9 @@ public:
 	UFUNCTION()
 	void ToggleIceMode();
 
+	UFUNCTION()
+	void ToggleStasisMode();
+
 	UFUNCTION(BlueprintCallable)
 	bool IsCharacterExausted();
 
@@ -147,6 +151,12 @@ public:
 	void ClearStaminaTimers();
 	void AddGravityTimer();
 	FTimerHandle AddGravityTimerHandle;
+
+	void AddStasisForce();
+	void StartStasis();
+	void StasisTrace(UPrimitiveComponent* &HitComponent, bool &bSimlatePhysics);
+	void AddForceToStasisActor();
+	void BreakStasis();
 
 #pragma endregion Functions
 
@@ -247,6 +257,15 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ice")
 	UMaterialInterface* IceEnableMaterial = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stasis")
+	UMaterialInterface* StasisHighlightMaterial = nullptr;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stasis")
+	UMaterialInterface* DefaultStasisMaterial = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stasis")
+	TSubclassOf<AStasis> StasisActorClass;
 	
 	float VelocityX;
 	float VelocityY;
@@ -267,6 +286,9 @@ public:
 	TObjectPtr<UPrimitiveComponent> TempMagHitComp;
 	TObjectPtr<UParticleSystemComponent> ParticleBeam;
 	AIce* IceReference;
+	UPrimitiveComponent* StasisComponent;
+	FTimerHandle StasisTimer;
+	AStasis* StasisForce;
 	
 protected:
 	
