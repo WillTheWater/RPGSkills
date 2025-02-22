@@ -14,6 +14,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Actors/BombBase.h"
 #include "Actors/Ice.h"
+#include "Actors/InteractBase.h"
 #include "Actors/Stasis.h"
 #include "Components/ArrowComponent.h"
 #include "Engine/StaticMeshActor.h"
@@ -76,6 +77,7 @@ void ARPGSkillsBaseCharacter::BeginPlay()
 	}
 
 	FilterOutAllMetalObjects();
+	Tags.Add(FName("Tag.Player"));
 }
 
 void ARPGSkillsBaseCharacter::Landed(const FHitResult& Hit)
@@ -120,6 +122,7 @@ void ARPGSkillsBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 	EIComponent->BindAction(ToggleUIAction, ETriggerEvent::Started, this, &ARPGSkillsBaseCharacter::ToggleUIStarted);
 	EIComponent->BindAction(PrepareSkillAction, ETriggerEvent::Started, this, &ARPGSkillsBaseCharacter::PrepareSkillStarted);
 	EIComponent->BindAction(CastSkillAction, ETriggerEvent::Started, this, &ARPGSkillsBaseCharacter::CastSkillStarted);
+	EIComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ARPGSkillsBaseCharacter::InteractionStarted);
 
 }
 
@@ -310,32 +313,71 @@ void ARPGSkillsBaseCharacter::PrepareSkillStarted(const FInputActionValue& Value
 
 void ARPGSkillsBaseCharacter::CastSkillStarted(const FInputActionValue& Value)
 {
-	switch (ActiveSkill)
+	if (InteractBaseActor)
 	{
-	case ESkills::SK_EMAX:
-		break;
-	case ESkills::SK_RBB:
-		ThrowAndIgniteBomb(false);
-		break;
-	case ESkills::SK_RBS:
-		ThrowAndIgniteBomb(true);
-		break;
-	case ESkills::SK_MAG:
-		SelectOrReleaseMagObject();
-		break;
-	case ESkills::SK_STASIS:
-		AddStasisForce();
-		break;
-	case ESkills::SK_ICE:
-		CreateIce();
-		break;
-	default:
-		break;
+		InteractBaseActor->NextActionInteractActor();
+		FVector ThrowDirection = GetThrowDirection();
+		InteractBaseActor->BaseMesh->SetPhysicsLinearVelocity(ThrowDirection);
+		InteractBaseActor = nullptr;
+	}
+	else
+	{
+		switch (ActiveSkill)
+        	{
+        	case ESkills::SK_EMAX:
+        		break;
+        	case ESkills::SK_RBB:
+        		ThrowAndIgniteBomb(false);
+        		break;
+        	case ESkills::SK_RBS:
+        		ThrowAndIgniteBomb(true);
+        		break;
+        	case ESkills::SK_MAG:
+        		SelectOrReleaseMagObject();
+        		break;
+        	case ESkills::SK_STASIS:
+        		AddStasisForce();
+        		break;
+        	case ESkills::SK_ICE:
+        		CreateIce();
+        		break;
+        	default:
+        		break;
+        	}
+	}
+	
+}
+
+void ARPGSkillsBaseCharacter::InteractionStarted(const FInputActionValue& Value)
+{
+	DeavtivateAllSkills();
+	if (InteractBaseActor)
+	{
+		InteractBaseActor->NextActionInteractActor();
+		InteractBaseActor = nullptr;
+	}
+	else
+	{
+		TSet<AActor*> TempActors;
+		GetOverlappingActors(TempActors);
+		if (!TempActors.IsValidId(FSetElementId::FromInteger(0))) { return; }
+		InteractBaseActor = Cast<AInteractBase>(TempActors.Array()[0]);
+
+		if (InteractBaseActor)
+		{
+			InteractBaseActor->ToggleIntereaction(this);
+		}
 	}
 }
 
 void ARPGSkillsBaseCharacter::ToggleSkillActivity()
 {
+	if (InteractBaseActor)
+	{
+		InteractBaseActor->NextActionInteractActor();
+		InteractBaseActor = nullptr;
+	}
+	
 	if (ActiveSkill == ESkills::SK_EMAX) { return; }
 
 	if (GetWidgetSwitcherInfo() == 1) {return;}
@@ -872,6 +914,17 @@ void ARPGSkillsBaseCharacter::BreakStasis()
 	{
 		StasisComponent->SetMaterial(0, DefaultStasisMaterial);
 		StasisComponent = nullptr;
+	}
+}
+
+void ARPGSkillsBaseCharacter::CancelReadyToThrow(UStaticMeshComponent* StaticMeshReference)
+{
+	if (StaticMeshReference)
+	{
+		StaticMeshReference->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+		StaticMeshReference->SetSimulatePhysics(true);
+		CrosshairAndCameraMode(false);
+		bReadyToThrow = false;
 	}
 }
 

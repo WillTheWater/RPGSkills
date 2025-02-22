@@ -26,12 +26,6 @@ void AWindTunnel::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor*
 void AWindTunnel::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (bTempWind)
-	{
-		InitialLifeSpan = 30.f;
-	}
-	
 }
 
 void AWindTunnel::Tick(float DeltaTime)

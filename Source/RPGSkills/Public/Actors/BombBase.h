@@ -10,6 +10,9 @@ class UParticleSystem;
 class UParticleSystemComponent;
 class USoundBase;
 class UCameraShakeBase;
+class AFieldSystemActor;
+class URadialForceComponent;
+class AWindTunnel;
 
 UCLASS()
 class RPGSKILLS_API ABombBase : public AActor
@@ -21,6 +24,12 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+	TSubclassOf<AActor> FieldSystemActorClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+	TObjectPtr<URadialForceComponent> RadialForceComponent;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Assets")
 	TObjectPtr<UParticleSystem> BombSpawn;
@@ -34,6 +43,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Assets")
 	TSubclassOf<UCameraShakeBase> BombExplosionShake;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Assets")
+	TSubclassOf<AWindTunnel> WindTunnelClass;
 	void Detonate();
 	
 protected:

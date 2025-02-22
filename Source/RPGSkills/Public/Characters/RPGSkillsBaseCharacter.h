@@ -5,6 +5,7 @@
 #include "GameFramework/Character.h"
 #include "RPGSkillsBaseCharacter.generated.h"
 
+class AInteractBase;
 class AIce;
 class ABombBase;
 struct FInputActionValue;
@@ -80,7 +81,6 @@ public:
 
 	UFUNCTION()
 	void JumpGlideReleased(const FInputActionValue& Value);
-
 	
 	UFUNCTION()
 	void ToggleUIStarted(const FInputActionValue& Value);
@@ -90,6 +90,9 @@ public:
 
 	UFUNCTION()
 	void CastSkillStarted(const FInputActionValue& Value);
+
+	UFUNCTION()
+	void InteractionStarted(const FInputActionValue& Value);
 
 	UFUNCTION()
 	void ToggleSkillActivity();
@@ -157,6 +160,7 @@ public:
 	void StasisTrace(UPrimitiveComponent* &HitComponent, bool &bSimlatePhysics);
 	void AddForceToStasisActor();
 	void BreakStasis();
+	void CancelReadyToThrow(UStaticMeshComponent* StaticMeshReference);
 
 #pragma endregion Functions
 
@@ -201,6 +205,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* CastSkillAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* InteractAction;
 
 	UPROPERTY(EditAnywhere, Category = "CharacterMovementState")
 	EMovementTypes CurrentMT = EMovementTypes::MT_EMAX;
@@ -289,6 +296,7 @@ public:
 	UPrimitiveComponent* StasisComponent;
 	FTimerHandle StasisTimer;
 	AStasis* StasisForce;
+	AInteractBase* InteractBaseActor;
 	
 protected:
 	
