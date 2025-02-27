@@ -6,9 +6,6 @@
 #include "GameFramework/PlayerController.h"
 #include "RPGSkillsPlayerController.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class RPGSKILLS_API ARPGSkillsPlayerController : public APlayerController
 {
