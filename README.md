@@ -1,2 +1,2 @@
 # RPGSkillsProject
- Creating Unique RPG Skills
+ Practice project making random adventure RPG puzzle skills
